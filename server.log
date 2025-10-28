@@ -1,0 +1,563 @@
+ ⚠ Attempted to load @next/swc-darwin-arm64, but an error occurred: dlopen(/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node, 0x0001): tried: '/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (segment '__TEXT' load command content extends beyond end of file), '/System/Volumes/Preboot/Cryptexes/OS/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (no such file), '/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (segment '__TEXT' load command content extends beyond end of file)
+ ⚠ Attempted to load @next/swc-darwin-arm64, but an error occurred: dlopen(/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node, 0x0001): tried: '/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (segment '__TEXT' load command content extends beyond end of file), '/System/Volumes/Preboot/Cryptexes/OS/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (no such file), '/Users/xianglijun/english-mistake-review/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node' (segment '__TEXT' load command content extends beyond end of file)
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.108:3000
+
+ ✓ Starting...
+ ✓ Ready in 1947ms
+ ○ Compiling /api/dashboard ...
+ ✓ Compiled /api/dashboard in 1073ms (340 modules)
+ GET /api/dashboard 200 in 1938ms
+ ✓ Compiled /api/mistakes in 78ms (342 modules)
+ POST /api/mistakes 201 in 112ms
+ GET /api/mistakes 200 in 5ms
+ ✓ Compiled /api/mistakes/batch in 59ms (344 modules)
+ POST /api/mistakes/batch 201 in 76ms
+ ✓ Compiled /api/calendar in 66ms (346 modules)
+ GET /api/calendar 200 in 83ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.8s (652 modules)
+ GET / 200 in 2976ms
+ ✓ Compiled /favicon.ico in 97ms (450 modules)
+ ✓ Compiled (452 modules)
+ GET /favicon.ico 200 in 208ms
+ GET /api/dashboard 200 in 224ms
+ ✓ Compiled /add in 242ms (627 modules)
+ GET /add 200 in 366ms
+ GET / 200 in 34ms
+ ✓ Compiled /api/dashboard in 76ms (455 modules)
+ GET /api/dashboard 200 in 157ms
+ GET /api/dashboard 200 in 9ms
+ ✓ Compiled /library in 155ms (696 modules)
+ GET /library 200 in 204ms
+ ✓ Compiled /api/mistakes in 113ms (462 modules)
+ GET /api/mistakes? 200 in 135ms
+ GET /api/mistakes? 200 in 4ms
+ GET / 200 in 60ms
+ GET /api/dashboard 200 in 11ms
+ GET /api/dashboard 200 in 6ms
+ GET /add 200 in 292ms
+ GET / 200 in 50ms
+ GET /api/dashboard 200 in 34ms
+ GET /api/dashboard 200 in 19ms
+ ○ Compiling /calendar ...
+ ✓ Compiled /calendar in 699ms (725 modules)
+ GET /calendar 200 in 930ms
+ ✓ Compiled /api/calendar in 63ms (502 modules)
+ GET /api/calendar?year=2025&month=9 200 in 219ms
+ GET /api/calendar?year=2025&month=9 200 in 4ms
+ ✓ Compiled /library in 51ms (507 modules)
+ GET /library 200 in 99ms
+ ✓ Compiled /api/mistakes in 51ms (509 modules)
+ GET /api/mistakes? 200 in 73ms
+ GET /api/mistakes? 200 in 5ms
+ ✓ Compiled /add in 185ms (514 modules)
+ GET /add 200 in 221ms
+ GET / 200 in 40ms
+ ✓ Compiled /api/dashboard in 82ms (516 modules)
+ GET /api/dashboard 200 in 114ms
+ GET /api/dashboard 200 in 6ms
+ GET /add 200 in 45ms
+ ✓ Compiled /api/mistakes/batch in 146ms (450 modules)
+ POST /api/mistakes/batch 201 in 185ms
+ GET / 200 in 47ms
+ ✓ Compiled /api/dashboard in 72ms (452 modules)
+ GET /api/dashboard 200 in 96ms
+ GET /api/dashboard 200 in 5ms
+ ✓ Compiled /library in 58ms (457 modules)
+ GET /library 200 in 95ms
+ ✓ Compiled /api/mistakes in 63ms (459 modules)
+ GET /api/mistakes? 200 in 83ms
+ GET /api/mistakes? 200 in 3ms
+ ✓ Compiled /api/mistakes/[id] in 163ms (760 modules)
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/4df0277a-f58e-4a84-940e-7a43525bf746 200 in 659ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/5054d827-4298-4eb5-8cba-73ca064399c0 200 in 65ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/74c75b21-1f27-4f38-9cdd-7ff9a51da2b9 200 in 62ms
+ GET / 200 in 49ms
+ GET /api/dashboard 200 in 9ms
+ GET /api/dashboard 200 in 6ms
+ ✓ Compiled /add in 156ms (393 modules)
+ GET /add 200 in 268ms
+ ✓ Compiled /api/mistakes/batch in 61ms (455 modules)
+ POST /api/mistakes/batch 201 in 151ms
+ GET / 200 in 61ms
+ ✓ Compiled /api/dashboard in 83ms (457 modules)
+ GET /api/dashboard 200 in 126ms
+ GET /api/dashboard 200 in 6ms
+ GET /add 200 in 47ms
+ POST /api/mistakes/batch 201 in 24ms
+ GET / 200 in 34ms
+ GET /api/dashboard 200 in 13ms
+ GET /api/dashboard 200 in 11ms
+ GET /add 200 in 27ms
+ POST /api/mistakes/batch 201 in 24ms
+ GET / 200 in 30ms
+ GET /api/dashboard 200 in 11ms
+ GET /api/dashboard 200 in 9ms
+ ✓ Compiled /review in 261ms (763 modules)
+ GET /review 200 in 305ms
+ ✓ Compiled /api/mistakes in 120ms (464 modules)
+ GET /api/mistakes?todayReview=true 200 in 147ms
+ GET /api/mistakes?todayReview=true 200 in 3ms
+ ✓ Compiled /api/mistakes/[id] in 107ms (466 modules)
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/fc8e5027-462d-49bf-8e77-81474ccd9157 200 in 168ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/33e3429f-cc16-4515-94f9-f9e6c7c46e03 200 in 62ms
+ ✓ Compiled /library in 139ms (471 modules)
+ GET /library 200 in 181ms
+ GET /api/mistakes? 200 in 13ms
+ GET /api/mistakes? 200 in 5ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/33e3429f-cc16-4515-94f9-f9e6c7c46e03 200 in 57ms
+ GET / 200 in 41ms
+ GET /api/dashboard 200 in 12ms
+ GET /api/dashboard 200 in 4ms
+ GET /review 200 in 36ms
+ GET /api/mistakes?todayReview=true 200 in 10ms
+ GET /api/mistakes?todayReview=true 200 in 7ms
+ ✓ Compiled in 59ms (301 modules)
+ ✓ Compiled /calendar in 163ms (518 modules)
+ GET /calendar 200 in 206ms
+ ✓ Compiled /api/calendar in 77ms (520 modules)
+ GET /api/calendar?year=2025&month=9 200 in 103ms
+ GET /api/calendar?year=2025&month=9 200 in 3ms
+ GET /library 200 in 49ms
+ GET /api/mistakes? 200 in 8ms
+ GET /api/mistakes? 200 in 6ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/982cf185-a07d-48d3-8bdf-0408a11decef 200 in 62ms
+ GET / 200 in 40ms
+ GET /api/dashboard 200 in 9ms
+ GET /api/dashboard 200 in 4ms
+ GET /review 200 in 35ms
+ GET /api/mistakes?todayReview=true 200 in 10ms
+ GET /api/mistakes?todayReview=true 200 in 6ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/b8b01d4f-be91-4c96-a8e0-ee7005d6634e 200 in 55ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/a880b859-fc17-439f-a3e1-90c3b0a6a743 200 in 58ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/8039334b-a5ae-4ed7-bcf5-91de4ab51661 200 in 67ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/d3abd6d9-69d1-46c0-8257-7aa3042715c6 200 in 55ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/c8b41d2f-2193-4c21-a09b-e6ba58b91b39 200 in 72ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/edaf0016-48dc-45f1-8f4b-425e4b32d88c 200 in 57ms
+ ✓ Compiled /add in 102ms (455 modules)
+ GET /add 200 in 160ms
+ ✓ Compiled /review in 79ms (460 modules)
+ GET /review 200 in 156ms
+ ✓ Compiled /api/mistakes in 63ms (462 modules)
+ GET /api/mistakes?todayReview=true 200 in 94ms
+ GET /api/mistakes?todayReview=true 200 in 4ms
+ ✓ Compiled /library in 72ms (467 modules)
+ GET /library 200 in 104ms
+ GET /api/mistakes? 200 in 13ms
+ GET /api/mistakes? 200 in 4ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/edaf0016-48dc-45f1-8f4b-425e4b32d88c 200 in 56ms
+ GET / 200 in 38ms
+ ✓ Compiled /api/dashboard in 154ms (469 modules)
+ GET /api/dashboard 200 in 188ms
+ GET /api/dashboard 200 in 9ms
+ GET /review 200 in 44ms
+ GET /api/mistakes?todayReview=true 200 in 10ms
+ GET /api/mistakes?todayReview=true 200 in 4ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/b8b01d4f-be91-4c96-a8e0-ee7005d6634e 200 in 57ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/dc372364-a6fc-4437-874e-07f5b4b1642a 200 in 59ms
+ GET / 200 in 44ms
+ GET /api/dashboard 200 in 12ms
+ GET /api/dashboard 200 in 5ms
+ GET /review 200 in 31ms
+ GET /api/mistakes?todayReview=true 200 in 12ms
+ GET /api/mistakes?todayReview=true 200 in 10ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/73bc8f7f-b6c3-4a79-bb37-8427c47ebdb6 200 in 65ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/326c2037-79ca-49d9-98f0-93b949697615 200 in 63ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/6bacbae1-c709-49c0-8a70-39195f206a85 200 in 53ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/76761f9e-ecda-48a5-b9e2-c0d38d6f93f5 200 in 59ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/55a28bbd-a7b4-41e9-bf3c-a502a823e8ba 200 in 67ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/1304c05b-6e63-42ea-8d46-b75b125a718c 200 in 58ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/fb9ee103-5852-4660-92b1-e32e150da702 200 in 71ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/da0a2956-e6d1-4c53-85ff-f18f7dd66380 200 in 70ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/d827f502-cb8c-4f73-9793-9cf3f319afab 200 in 62ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/78483790-9dc5-462b-8583-189bc498c8fe 200 in 63ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/161d3af8-11be-4e98-9e8e-73cb554dbb8c 200 in 64ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/509b38b6-f5b4-43b4-934e-902a67ef23a1 200 in 55ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/46975c83-772c-4653-b314-236b1926ff04 200 in 53ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/63b9b1fe-dffc-472a-b619-2e31a425f342 200 in 65ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/d6eef7eb-0900-442c-9bb9-7506f5bc87b2 200 in 60ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/04e5258e-5d29-48ec-9cb3-2eb5ec7a72ea 200 in 59ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/5ae11c8f-f41a-4aaa-8a72-fc163574050b 200 in 60ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/6fcc3982-b916-4c9c-b554-9d761a108c2a 200 in 59ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PUT (src/app/api/mistakes/[id]/route.ts:12:13)
+  10 |   try {
+  11 |     const db = getDatabase();
+> 12 |     const { id } = params;
+     |             ^
+  13 |     const { isCorrect } = await request.json();
+  14 |
+  15 |     if (typeof isCorrect !== 'boolean') {
+ PUT /api/mistakes/4b2f16bc-7837-4921-994e-68683ff54259 200 in 61ms
+ GET / 200 in 44ms
+ GET /api/dashboard 200 in 9ms
+ GET /api/dashboard 200 in 9ms
+ GET /library 200 in 35ms
+ GET /api/mistakes? 200 in 13ms
+ GET /api/mistakes? 200 in 8ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/326c2037-79ca-49d9-98f0-93b949697615 200 in 63ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/509b38b6-f5b4-43b4-934e-902a67ef23a1 200 in 54ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/04e5258e-5d29-48ec-9cb3-2eb5ec7a72ea 200 in 58ms
+Error: Route "/api/mistakes/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (src/app/api/mistakes/[id]/route.ts:61:13)
+  59 |   try {
+  60 |     const db = getDatabase();
+> 61 |     const { id } = params;
+     |             ^
+  62 |
+  63 |     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
+  64 |     const result = stmt.run(id);
+ DELETE /api/mistakes/5ae11c8f-f41a-4aaa-8a72-fc163574050b 200 in 61ms
+ GET / 200 in 27ms
+ GET /api/dashboard 200 in 12ms
+ GET /api/dashboard 200 in 9ms
+ ✓ Compiled /calendar in 191ms (511 modules)
+ GET /calendar 200 in 274ms
+ ✓ Compiled /api/calendar in 75ms (513 modules)
+ GET /api/calendar?year=2025&month=9 200 in 112ms
+ GET /api/calendar?year=2025&month=9 200 in 8ms
+ GET /api/calendar?year=2025&month=8 200 in 12ms
+ GET /api/calendar?year=2025&month=9 200 in 19ms
+ GET / 200 in 59ms
+ GET /api/dashboard 200 in 12ms
+ GET /api/dashboard 200 in 6ms
+ GET / 200 in 142ms
+ GET /api/dashboard 200 in 8ms
+ GET / 200 in 47ms
+ GET /api/dashboard 200 in 7ms
+[?25h
