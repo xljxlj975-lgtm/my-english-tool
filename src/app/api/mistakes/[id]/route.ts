@@ -5,11 +5,11 @@ import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetitio
 // PUT /api/mistakes/[id] - Update mistake (for review)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const db = getDatabase();
-    const { id } = params;
+    const { id } = await params;
     const { isCorrect } = await request.json();
 
     if (typeof isCorrect !== 'boolean') {
@@ -54,11 +54,11 @@ export async function PUT(
 // DELETE /api/mistakes/[id] - Delete mistake
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const db = getDatabase();
-    const { id } = params;
+    const { id } = await params;
 
     const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
     const result = stmt.run(id);
