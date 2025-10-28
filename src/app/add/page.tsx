@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const MISTAKE_TYPES = [
-  { value: 'uncategorized', label: 'Uncategorized' },
-  { value: 'grammar', label: 'Grammar' },
-  { value: 'vocabulary', label: 'Vocabulary' },
-  { value: 'collocation', label: 'Collocation' },
-  { value: 'tense', label: 'Tense' },
-  { value: 'pronunciation', label: 'Pronunciation' }
+  { value: 'uncategorized', label: '未分类' },
+  { value: 'grammar', label: '语法' },
+  { value: 'vocabulary', label: '词汇' },
+  { value: 'collocation', label: '搭配' },
+  { value: 'tense', label: '时态' },
+  { value: 'pronunciation', label: '发音' }
 ];
 
 export default function AddMistake() {
@@ -34,6 +34,8 @@ export default function AddMistake() {
     setError('');
 
     try {
+      console.log('[单个添加] 开始提交...');
+      
       const response = await fetch('/api/mistakes', {
         method: 'POST',
         headers: {
@@ -47,14 +49,19 @@ export default function AddMistake() {
         }),
       });
 
+      console.log('[单个添加] 响应状态:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Failed to add mistake');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[单个添加] 错误详情:', errorData);
+        throw new Error(errorData.error || '添加失败');
       }
 
       router.push('/');
     } catch (error) {
-      setError('Failed to add mistake. Please try again.');
-      console.error('Error adding mistake:', error);
+      const errorMessage = error instanceof Error ? error.message : '添加错误失败，请重试。';
+      setError(errorMessage);
+      console.error('[单个添加] 捕获错误:', error);
     } finally {
       setLoading(false);
     }
@@ -66,6 +73,8 @@ export default function AddMistake() {
     setError('');
 
     try {
+      console.log('[批量添加] 开始提交...', { batchText, type });
+      
       const response = await fetch('/api/mistakes/batch', {
         method: 'POST',
         headers: {
@@ -77,16 +86,22 @@ export default function AddMistake() {
         }),
       });
 
+      console.log('[批量添加] 响应状态:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Failed to add batch mistakes');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[批量添加] 错误详情:', errorData);
+        throw new Error(errorData.error || errorData.details || '批量添加失败');
       }
 
       const result = await response.json();
-      alert(`Successfully added ${result.count} mistakes!`);
+      console.log('[批量添加] 成功:', result);
+      alert(`成功添加 ${result.count} 个错误记录！`);
       router.push('/');
     } catch (error) {
-      setError('Failed to add batch mistakes. Please try again.');
-      console.error('Error adding batch mistakes:', error);
+      const errorMessage = error instanceof Error ? error.message : '批量添加错误失败，请重试。';
+      setError(errorMessage);
+      console.error('[批量添加] 捕获错误:', error);
     } finally {
       setLoading(false);
     }
@@ -98,9 +113,9 @@ export default function AddMistake() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Add Mistake</h1>
+            <h1 className="text-3xl font-bold text-gray-900">添加错误</h1>
             <Link href="/" className="text-blue-600 hover:text-blue-800">
-              ← Back to Dashboard
+              ← 返回首页
             </Link>
           </div>
         </div>
@@ -116,7 +131,7 @@ export default function AddMistake() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Single Entry
+              单个添加
             </button>
             <button
               onClick={() => setMode('batch')}
@@ -126,7 +141,7 @@ export default function AddMistake() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Batch Entry
+              批量添加
             </button>
           </div>
 
@@ -140,7 +155,7 @@ export default function AddMistake() {
             <form onSubmit={handleSingleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Error Sentence *
+                  错误句子 *
                 </label>
                 <textarea
                   value={errorSentence}
@@ -148,13 +163,13 @@ export default function AddMistake() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   required
-                  placeholder="Enter the incorrect sentence..."
+                  placeholder="输入错误的句子..."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Correct Sentence *
+                  正确句子 *
                 </label>
                 <textarea
                   value={correctSentence}
@@ -162,26 +177,26 @@ export default function AddMistake() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   required
-                  placeholder="Enter the correct sentence..."
+                  placeholder="输入正确的句子..."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Explanation
+                  说明
                 </label>
                 <textarea
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
-                  placeholder="Optional explanation of the mistake..."
+                  placeholder="可选：对错误的说明..."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
+                  类型
                 </label>
                 <select
                   value={type}
@@ -202,7 +217,7 @@ export default function AddMistake() {
                   disabled={loading}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium"
                 >
-                  {loading ? 'Adding...' : 'Add Mistake'}
+                  {loading ? '添加中...' : '添加错误'}
                 </button>
               </div>
             </form>
@@ -210,10 +225,10 @@ export default function AddMistake() {
             <form onSubmit={handleBatchSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Batch Input
+                  批量输入
                 </label>
                 <p className="text-sm text-gray-600 mb-2">
-                  Enter one mistake per line in format: error sentence | correct sentence | explanation (optional)
+                  每行输入一个错误，格式：错误句子 | 正确句子 | 说明（可选）
                 </p>
                 <textarea
                   value={batchText}
@@ -221,13 +236,13 @@ export default function AddMistake() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                   rows={10}
                   required
-                  placeholder="I have went to school | I have gone to school | Use past participle with have&#10;He don't like it | He doesn't like it | Use doesn't with third person singular"
+                  placeholder="I have went to school | I have gone to school | 使用have时应该用过去分词&#10;He don't like it | He doesn't like it | 第三人称单数用doesn't"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Default Type
+                  默认类型
                 </label>
                 <select
                   value={type}
@@ -248,7 +263,7 @@ export default function AddMistake() {
                   disabled={loading}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium"
                 >
-                  {loading ? 'Adding...' : 'Add Batch'}
+                  {loading ? '添加中...' : '批量添加'}
                 </button>
               </div>
             </form>
