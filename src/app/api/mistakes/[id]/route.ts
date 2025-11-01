@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/database';
 import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
 
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
 // PUT /api/mistakes/[id] - Update mistake (for review)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
     const supabase = getSupabaseClient();
-    const { id } = params;
+    const { id } = await params;
     const { isCorrect } = await request.json();
 
     if (typeof isCorrect !== 'boolean') {
@@ -67,11 +71,11 @@ export async function PUT(
 // DELETE /api/mistakes/[id] - Delete mistake
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
     const supabase = getSupabaseClient();
-    const { id } = params;
+    const { id } = await params;
 
     const { data, error } = await supabase
       .from('mistakes')

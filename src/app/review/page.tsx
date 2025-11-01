@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -20,23 +20,43 @@ export default function ReviewPage() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
-  const [completedCount, setCompletedCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const fetchTodayMistakes = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMessage(null);
+      const response = await fetch('/api/mistakes?todayReview=true');
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+            ? payload.error
+            : 'Failed to fetch today\'s mistakes';
+        throw new Error(message);
+      }
+
+      if (!Array.isArray(payload)) {
+        throw new Error('Unexpected response format from /api/mistakes');
+      }
+
+      setMistakes(payload);
+      setReviewing(false);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+    } catch (error) {
+      console.error("Error fetching today's mistakes:", error);
+      setMistakes([]);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to fetch today's mistakes");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchTodayMistakes();
-  }, []);
-
-  const fetchTodayMistakes = async () => {
-    try {
-      const response = await fetch('/api/mistakes?todayReview=true');
-      const data = await response.json();
-      setMistakes(data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching today\'s mistakes:', error);
-      setLoading(false);
-    }
-  };
+  }, [fetchTodayMistakes]);
 
   const handleReviewResponse = async (isCorrect: boolean) => {
     if (currentIndex >= mistakes.length) return;
@@ -55,8 +75,6 @@ export default function ReviewPage() {
       if (!response.ok) {
         throw new Error('Failed to update mistake');
       }
-
-      setCompletedCount(prev => prev + 1);
 
       // Move to next card
       if (currentIndex < mistakes.length - 1) {
@@ -103,6 +121,11 @@ export default function ReviewPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded mb-6">
+                {errorMessage}
+              </div>
+            )}
             <div className="mb-6">
               <div className="text-6xl mb-4">📚</div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">
@@ -110,7 +133,8 @@ export default function ReviewPage() {
               </h2>
               <p className="text-gray-600 text-lg">
                 You have {mistakes.length} mistakes to review today.
-              </p>            </div>
+              </p>
+            </div>
 
             <div className="space-y-4">
               <button
@@ -129,6 +153,13 @@ export default function ReviewPage() {
                   Add some mistakes to get started
                 </Link>
               )}
+
+              <button
+                onClick={fetchTodayMistakes}
+                className="block w-full mt-4 text-blue-600 hover:text-blue-800"
+              >
+                Refresh list
+              </button>
             </div>
           </div>
         </div>
@@ -137,7 +168,35 @@ export default function ReviewPage() {
   }
 
   const currentMistake = mistakes[currentIndex];
-  const progress = ((currentIndex + 1) / mistakes.length) * 100;
+
+  if (!currentMistake) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900">No mistakes to review</h2>
+          <p className="text-gray-600">
+            Try refreshing the list or adding new mistakes before starting a session.
+          </p>
+          <div className="space-x-2">
+            <button
+              onClick={fetchTodayMistakes}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Refresh
+            </button>
+            <Link
+              href="/add"
+              className="inline-block bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            >
+              Add Mistake
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const progress = mistakes.length > 0 ? ((currentIndex + 1) / mistakes.length) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">

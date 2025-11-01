@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { format, addMonths, subMonths } from 'date-fns';
-import { generateCalendarData, getMonthName, getReviewStats, CalendarDay } from '@/lib/calendar';
+import { generateCalendarData, getMonthName, CalendarDay } from '@/lib/calendar';
 
 interface Mistake {
   id: string;
@@ -27,31 +27,78 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDateMistakes, setShowDateMistakes] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCalendarData();
-  }, [currentDate]);
+  const fetchCalendarData = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
 
-  const fetchCalendarData = async () => {
     try {
-      setLoading(true);
       const response = await fetch(`/api/calendar?year=${currentDate.getFullYear()}&month=${currentDate.getMonth() + 1}`);
-      const data = await response.json();
-      setCalendarData(data);
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload || typeof payload !== 'object') {
+        const message =
+          payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+            ? payload.error
+            : 'Failed to fetch calendar data';
+        throw new Error(message);
+      }
+
+      const reviewCountsRaw = (payload as Record<string, unknown>).reviewCounts;
+      const reviewCounts =
+        reviewCountsRaw && typeof reviewCountsRaw === 'object'
+          ? Object.entries(reviewCountsRaw as Record<string, unknown>).reduce<Record<string, number>>(
+              (acc, [key, value]) => {
+                acc[key] = typeof value === 'number' ? value : Number(value) || 0;
+                return acc;
+              },
+              {}
+            )
+          : {};
+
+      const mistakesForDateRaw = (payload as Record<string, unknown>).mistakesForDate;
+      const mistakesForDate = Array.isArray(mistakesForDateRaw) ? mistakesForDateRaw : [];
+
+      const normalized: CalendarData = {
+        reviewCounts,
+        mistakesForDate,
+        year: Number((payload as Record<string, unknown>).year) || currentDate.getFullYear(),
+        month: Number((payload as Record<string, unknown>).month) || currentDate.getMonth() + 1,
+      };
+
+      setCalendarData(normalized);
     } catch (error) {
       console.error('Error fetching calendar data:', error);
+      setCalendarData(null);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch calendar data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDate]);
+
+  useEffect(() => {
+    fetchCalendarData();
+  }, [fetchCalendarData]);
 
   const fetchMistakesForDate = async (dateString: string) => {
     try {
       const response = await fetch(`/api/calendar?date=${dateString}`);
-      const data = await response.json();
-      return data.mistakesForDate || [];
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload || typeof payload !== 'object') {
+        const message =
+          payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+            ? payload.error
+            : 'Failed to fetch mistakes for the selected date';
+        throw new Error(message);
+      }
+
+      const mistakes = (payload as Record<string, unknown>).mistakesForDate;
+      return Array.isArray(mistakes) ? mistakes : [];
     } catch (error) {
       console.error('Error fetching mistakes for date:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch mistakes for the selected date');
       return [];
     }
   };
@@ -59,6 +106,7 @@ export default function CalendarPage() {
   const handleDateClick = async (day: CalendarDay) => {
     if (!day.hasReviews) return;
 
+    setErrorMessage(null);
     const mistakes = await fetchMistakesForDate(day.dateString);
     setSelectedDate(day.dateString);
     setCalendarData(prev => prev ? { ...prev, mistakesForDate: mistakes } : null);
@@ -80,10 +128,29 @@ export default function CalendarPage() {
     setShowDateMistakes(false);
   };
 
-  if (loading || !calendarData) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!calendarData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900">无法加载日历数据</h2>
+          <p className="text-gray-600">
+            {errorMessage || 'Please try again later.'}
+          </p>
+          <button
+            onClick={fetchCalendarData}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            重试
+          </button>
+        </div>
       </div>
     );
   }
@@ -106,6 +173,12 @@ export default function CalendarPage() {
             ← Back to Dashboard
           </Link>
         </div>
+
+        {errorMessage && (
+          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Calendar Navigation */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">

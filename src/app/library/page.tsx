@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface Mistake {
@@ -38,29 +38,47 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-
-  useEffect(() => {
-    fetchMistakes();
-  }, [search, typeFilter, statusFilter]);
-
-  const fetchMistakes = async () => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fetchMistakes = useCallback(async () => {
     try {
       setLoading(true);
+      setErrorMessage(null);
       const params = new URLSearchParams();
 
       if (search) params.append('search', search);
       if (typeFilter) params.append('type', typeFilter);
       if (statusFilter) params.append('status', statusFilter);
 
-      const response = await fetch(`/api/mistakes?${params.toString()}`);
-      const data = await response.json();
-      setMistakes(data);
+      const queryString = params.toString();
+      const url = queryString ? `/api/mistakes?${queryString}` : '/api/mistakes';
+      const response = await fetch(url);
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+            ? payload.error
+            : 'Failed to fetch mistakes';
+        throw new Error(message);
+      }
+
+      if (!Array.isArray(payload)) {
+        throw new Error('Unexpected response format from /api/mistakes');
+      }
+
+      setMistakes(payload);
     } catch (error) {
       console.error('Error fetching mistakes:', error);
+      setMistakes([]);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch mistakes');
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, typeFilter, statusFilter]);
+
+  useEffect(() => {
+    fetchMistakes();
+  }, [fetchMistakes]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this mistake?')) {
@@ -108,6 +126,11 @@ export default function LibraryPage() {
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          {errorMessage && (
+            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+              {errorMessage}
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>

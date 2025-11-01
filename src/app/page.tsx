@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface DashboardData {
@@ -17,22 +17,48 @@ interface DashboardData {
 export default function Home() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
+      setLoading(true);
+      setErrorMessage(null);
+
       const response = await fetch('/api/dashboard');
-      const data = await response.json();
-      setDashboardData(data);
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload) {
+        const message =
+          (payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string')
+            ? payload.error
+            : 'Failed to fetch dashboard data';
+        throw new Error(message);
+      }
+
+      const safeData: DashboardData = {
+        todayReviewCount: Number(payload.todayReviewCount) || 0,
+        totalMistakes: Number(payload.totalMistakes) || 0,
+        learnedMistakes: Number(payload.learnedMistakes) || 0,
+        unlearnedMistakes: Number(payload.unlearnedMistakes) || 0,
+        mistakesByType: Array.isArray(payload.mistakesByType) ? payload.mistakesByType : [],
+        recentMistakes: Array.isArray(payload.recentMistakes) ? payload.recentMistakes : [],
+        streak: Number(payload.streak) || 0,
+        lastUpdated: typeof payload.lastUpdated === 'string' ? payload.lastUpdated : new Date().toISOString()
+      };
+
+      setDashboardData(safeData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setDashboardData(null);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch dashboard data');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
@@ -42,6 +68,22 @@ export default function Home() {
     );
   }
 
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900">无法加载仪表盘</h2>
+          <p className="text-gray-600">{errorMessage}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            重试
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (!dashboardData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
