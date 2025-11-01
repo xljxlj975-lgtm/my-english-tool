@@ -122,6 +122,10 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
-    return NextResponse.json({ error: 'Failed to fetch dashboard data' }, { status: 500 });
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to fetch dashboard data';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
