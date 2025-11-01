@@ -6,7 +6,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,  // 🚀 同时忽略 TS 检查（保险）
   },
-  serverExternalPackages: ['better-sqlite3'],
 };
 
 export default nextConfig;

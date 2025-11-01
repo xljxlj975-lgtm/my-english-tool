@@ -1,21 +1,19 @@
-# Vercel 部署指南
+# Vercel 部署指南（Supabase 版本）
 
-## ⚠️ 重要提示：better-sqlite3 在 Vercel 上的限制
+## ✅ 当前架构
 
-`better-sqlite3` 是一个原生 Node.js 库，在 Vercel 无服务器环境中存在以下问题：
+- 数据持久化：Supabase（PostgreSQL）
+- API 托管：Vercel 无服务器函数
+- Server Side 环境变量：`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- Client Side 环境变量（可选）：`SUPABASE_ANON_KEY`（目前前端未直接使用）
 
-1. **文件系统只读**：Vercel 的无服务器函数只能写入 `/tmp` 目录，且数据在函数调用后会丢失
-2. **原生模块编译**：可能在构建时失败
-3. **无状态环境**：每次函数调用都是独立的，不适合本地数据库
+## 部署前准备
 
-## 当前修复（临时方案）
-
-已应用以下修复：
-
-1. ✅ 修复了 `crypto.randomUUID()` 导入问题
-2. ✅ 在 `next.config.ts` 中添加了 `better-sqlite3` 外部包配置
-3. ✅ 移除构建命令中的 `--turbopack` 标志
-4. ✅ 添加了详细的错误日志
+1. 在 Supabase 控制台创建项目。
+2. 创建 `mistakes` 表（见 `README.md` 中的 Schema）。
+3. 确认已关闭 Row Level Security（或为 service role key 配置了读写策略）。
+4. 在项目根目录创建 `.env.local`，填入 Supabase 相关变量。
+5. 在 Vercel 项目设置中添加同样的环境变量（`Production`、`Preview`、`Development` 环境一致）。
 
 ## 部署步骤
 
@@ -23,81 +21,46 @@
 
 ```bash
 git add .
-git commit -m "fix: 修复批量添加功能，添加 Vercel 配置"
+git commit -m "feat: migrate storage to Supabase"
 git push origin main
 ```
 
 ### 2. 在 Vercel 中重新部署
 
-访问 Vercel 控制台，触发重新部署。
+访问 Vercel 控制台，触发重新部署。构建完成后无须额外配置即可连接 Supabase。
 
-### 3. 查看部署日志
+### 3. 验证部署
 
-在 Vercel 的 Functions 日志中查看详细的错误信息（现在有 `[Batch API]` 和 `[Database]` 标签）。
+1. 打开部署好的站点。
+2. 录入一条错题并刷新页面验证是否持久化。
+3. 在 Supabase Table Editor 中检查数据是否写入。
 
-## 长期解决方案（推荐）
+## 常见问题排查
 
-如果当前修复仍然无法解决问题，建议迁移到以下方案之一：
+1. **Missing SUPABASE_URL / KEY**
+   - 检查 Vercel 环境变量是否配置。
+   - 确保 `.env.local` 中变量名称与代码一致。
 
-### 方案 1: Turso（推荐，仍然使用 SQLite）
+2. **数据库无数据写入**
+   - 检查 Supabase 表是否存在并开启插入权限。
+   - 使用 Supabase SQL 编辑器确认 `mistakes` 表结构与 Schema 一致。
 
-[Turso](https://turso.tech) 是基于 libSQL 的云原生 SQLite 数据库，完美适配无服务器环境。
+3. **RLS 导致 401/403**
+   - 关闭 RLS 或为 service role key 编写允许所有操作的策略。
 
-```bash
-# 安装依赖
-npm install @libsql/client
+4. **函数日志调试**
+   - Vercel Dashboard > Deployments > 选择部署 > Functions 查看日志。
+   - 代码中保留了 `[Batch API]` 等日志标签，方便定位。
 
-# 注册 Turso 并创建数据库
-# https://turso.tech
-```
+## 本地开发
 
-### 方案 2: Vercel Postgres
-
-```bash
-# 在 Vercel 项目中启用 Postgres
-# 安装依赖
-npm install @vercel/postgres
-```
-
-### 方案 3: Vercel KV (Redis)
-
-适合简单的键值存储场景。
-
-```bash
-npm install @vercel/kv
-```
-
-## 调试步骤
-
-如果批量添加仍然失败：
-
-1. **查看 Vercel 函数日志**
-   - 访问 Vercel Dashboard > 你的项目 > Deployments > 选择最新部署 > Functions
-   - 查找包含 `[Batch API]` 和 `[Database]` 的日志条目
-
-2. **检查错误详情**
-   - 前端现在会返回详细的错误信息
-   - 在浏览器控制台查看完整的错误响应
-
-3. **本地测试**
-   ```bash
-   npm run build
-   npm run start
-   ```
-   访问 http://localhost:3000/add 测试批量添加功能
-
-## 临时解决方案
-
-如果需要立即使用批量添加功能，可以：
-
-1. **使用单个添加**：一次添加一条记录
-2. **在本地运行**：`npm run dev` 然后访问 http://localhost:3000
-3. **等待迁移到云数据库**
+1. 确保 `.env.local` 内填有 Supabase 项目信息。
+2. 运行 `npm install` 安装依赖。
+3. 执行 `npm run dev`，访问 `http://localhost:3000` 即可。
 
 ## 需要帮助？
 
-如果问题仍然存在，请提供：
-- Vercel 函数日志截图
-- 浏览器控制台错误信息
-- 批量添加时使用的文本格式示例
-
+如需进一步支持，请准备以下信息：
+- Supabase 项目 ID（或匿名处理后的 URL）
+- Vercel 部署日志（截图或关键报错）
+- API 响应错误详情（浏览器 Network 面板）

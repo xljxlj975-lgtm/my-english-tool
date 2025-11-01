@@ -32,8 +32,8 @@ If a mistake is marked as "learned", it progresses to the next stage. If marked 
 ## Tech Stack
 
 - **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: SQLite with better-sqlite3
+- **Backend**: Next.js API Routes + Supabase (PostgreSQL)
+- **Database**: Supabase (hosted PostgreSQL)
 - **Date Handling**: date-fns
 
 ## Getting Started
@@ -55,12 +55,24 @@ cd english-mistake-review
 npm install
 ```
 
-3. Start the development server:
+3. Configure Supabase credentials by creating a `.env.local` file:
+```bash
+cp .env.example .env.local
+```
+
+Fill in the following variables using your Supabase project settings:
+```
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_ANON_KEY=...
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to:
+5. Open your browser and navigate to:
 ```
 http://localhost:3000
 ```
@@ -112,19 +124,24 @@ http://localhost:3000
 ## Database Schema
 
 ```sql
-CREATE TABLE mistakes (
-  id TEXT PRIMARY KEY,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  error_sentence TEXT NOT NULL,
-  correct_sentence TEXT NOT NULL,
-  explanation TEXT,
-  type TEXT CHECK(type IN ('grammar', 'vocabulary', 'collocation', 'tense', 'pronunciation', 'uncategorized')) DEFAULT 'uncategorized',
-  status TEXT CHECK(status IN ('unlearned', 'learned')) DEFAULT 'unlearned',
-  next_review_at DATETIME NOT NULL,
-  review_stage INTEGER DEFAULT 0,
-  review_count INTEGER DEFAULT 0
+create type mistake_type as enum ('grammar', 'vocabulary', 'collocation', 'tense', 'pronunciation', 'uncategorized');
+create type mistake_status as enum ('unlearned', 'learned');
+
+create table public.mistakes (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  error_sentence text not null,
+  correct_sentence text not null,
+  explanation text,
+  type mistake_type not null default 'uncategorized',
+  status mistake_status not null default 'unlearned',
+  next_review_at timestamptz not null,
+  review_stage integer not null default 0,
+  review_count integer not null default 0
 );
 ```
+
+> ℹ️ If you prefer not to create custom enum types, you can use `text` columns with check constraints instead. Ensure Row Level Security is disabled or policies allow your service role key to read/write.
 
 ## Project Structure
 

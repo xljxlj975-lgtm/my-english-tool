@@ -68,7 +68,7 @@ export default function Home() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-2xl font-semibold text-gray-800">
-                Today's Review
+                Today&apos;s Review
               </h2>
               <p className="text-gray-600">
                 {dashboardData.todayReviewCount} mistakes to review

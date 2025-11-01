@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import { getSupabaseClient } from '@/lib/database';
 import { formatDateForDb } from '@/lib/spaced-repetition';
+
+type CalendarMistake = {
+  id: string;
+  error_sentence: string;
+  correct_sentence: string;
+  explanation: string | null;
+  type: string;
+  status: string;
+  created_at: string | null;
+};
 
 export async function GET(request: NextRequest) {
   try {
-    const db = getDatabase();
+    const supabase = getSupabaseClient();
     const searchParams = request.nextUrl.searchParams;
 
     const year = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
@@ -19,42 +29,45 @@ export async function GET(request: NextRequest) {
     endDate.setDate(endDate.getDate() + 7); // Go forward a week to include next month's days
     endDate.setHours(0, 0, 0, 0);
 
-    // Get review counts grouped by date
-    const stmt = db.prepare(`
-      SELECT
-        DATE(next_review_at) as review_date,
-        COUNT(*) as count
-      FROM mistakes
-      WHERE next_review_at >= ? AND next_review_at < ?
-      GROUP BY DATE(next_review_at)
-      ORDER BY review_date
-    `);
+    const { data: reviewRows, error: reviewError } = await supabase
+      .from('mistakes')
+      .select('next_review_at')
+      .gte('next_review_at', formatDateForDb(startDate))
+      .lt('next_review_at', formatDateForDb(endDate));
 
-    const reviewData = stmt.all(formatDateForDb(startDate), formatDateForDb(endDate)) as Array<{ review_date: string; count: number }>;
+    if (reviewError) {
+      throw reviewError;
+    }
 
     // Convert to object format for easier lookup
     const reviewCounts: { [date: string]: number } = {};
-    reviewData.forEach(({ review_date, count }) => {
-      reviewCounts[review_date] = count;
+    (reviewRows || []).forEach(({ next_review_at }) => {
+      if (!next_review_at) return;
+      const dateKey = new Date(next_review_at).toISOString().split('T')[0];
+      reviewCounts[dateKey] = (reviewCounts[dateKey] || 0) + 1;
     });
 
     // Get detailed mistakes for a specific date if requested
     const dateParam = searchParams.get('date');
-    let mistakesForDate: any[] = [];
+    let mistakesForDate: CalendarMistake[] = [];
 
     if (dateParam) {
       const date = new Date(dateParam);
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
-      const mistakesStmt = db.prepare(`
-        SELECT id, error_sentence, correct_sentence, explanation, type, status
-        FROM mistakes
-        WHERE next_review_at >= ? AND next_review_at < ?
-        ORDER BY created_at DESC
-      `);
+      const { data: mistakesRows, error: mistakesError } = await supabase
+        .from('mistakes')
+        .select<CalendarMistake>('id, error_sentence, correct_sentence, explanation, type, status, created_at')
+        .gte('next_review_at', formatDateForDb(date))
+        .lt('next_review_at', formatDateForDb(nextDate))
+        .order('created_at', { ascending: false });
 
-      mistakesForDate = mistakesStmt.all(formatDateForDb(date), formatDateForDb(nextDate));
+      if (mistakesError) {
+        throw mistakesError;
+      }
+
+      mistakesForDate = mistakesRows ?? [];
     }
 
     return NextResponse.json({

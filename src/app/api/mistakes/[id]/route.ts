@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import { getSupabaseClient } from '@/lib/database';
 import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
 
 // PUT /api/mistakes/[id] - Update mistake (for review)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const db = getDatabase();
-    const { id } = await params;
+    const supabase = getSupabaseClient();
+    const { id } = params;
     const { isCorrect } = await request.json();
 
     if (typeof isCorrect !== 'boolean') {
@@ -17,8 +17,15 @@ export async function PUT(
     }
 
     // Get current mistake data
-    const getStmt = db.prepare('SELECT * FROM mistakes WHERE id = ?');
-    const mistake = getStmt.get(id) as any;
+    const { data: mistake, error: fetchError } = await supabase
+      .from('mistakes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError;
+    }
 
     if (!mistake) {
       return NextResponse.json({ error: 'Mistake not found' }, { status: 404 });
@@ -31,13 +38,19 @@ export async function PUT(
     // Update status based on completion
     const newStatus = newStage === 4 && isCorrect ? 'learned' : 'unlearned';
 
-    const updateStmt = db.prepare(`
-      UPDATE mistakes
-      SET status = ?, next_review_at = ?, review_stage = ?, review_count = review_count + 1
-      WHERE id = ?
-    `);
+    const { error: updateError } = await supabase
+      .from('mistakes')
+      .update({
+        status: newStatus,
+        next_review_at: formatDateForDb(nextReviewAt),
+        review_stage: newStage,
+        review_count: (mistake.review_count ?? 0) + 1,
+      })
+      .eq('id', id);
 
-    updateStmt.run(newStatus, formatDateForDb(nextReviewAt), newStage, id);
+    if (updateError) {
+      throw updateError;
+    }
 
     return NextResponse.json({
       message: 'Mistake updated successfully',
@@ -54,16 +67,24 @@ export async function PUT(
 // DELETE /api/mistakes/[id] - Delete mistake
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const db = getDatabase();
-    const { id } = await params;
+    const supabase = getSupabaseClient();
+    const { id } = params;
 
-    const stmt = db.prepare('DELETE FROM mistakes WHERE id = ?');
-    const result = stmt.run(id);
+    const { data, error } = await supabase
+      .from('mistakes')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
 
-    if (result.changes === 0) {
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
       return NextResponse.json({ error: 'Mistake not found' }, { status: 404 });
     }
 

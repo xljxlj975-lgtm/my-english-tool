@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import { getSupabaseClient } from '@/lib/database';
 import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
 
 // POST /api/mistakes/batch - Create multiple mistakes from batch input
 export async function POST(request: NextRequest) {
   try {
     console.log('[Batch API] Starting batch creation...');
-    const db = getDatabase();
-    console.log('[Batch API] Database connection established');
+    const supabase = getSupabaseClient();
+    console.log('[Batch API] Supabase client initialized');
     
     const { batchText, type = 'uncategorized' } = await request.json();
     console.log('[Batch API] Received batch text:', batchText?.length || 0, 'characters');
@@ -44,36 +44,35 @@ export async function POST(request: NextRequest) {
 
     console.log('[Batch API] Parsed', mistakes.length, 'mistakes');
     const now = new Date();
-    const createdMistakes = [];
+    const { nextReviewAt } = calculateNextReviewDate(0, false, now);
+    const nextReviewAtFormatted = formatDateForDb(nextReviewAt);
 
-    // Insert all mistakes - using same pattern as single insert
-    const insertStmt = db.prepare(`
-      INSERT INTO mistakes (id, error_sentence, correct_sentence, explanation, type, next_review_at, review_stage, review_count)
-      VALUES (?, ?, ?, ?, ?, ?, 0, 0)
-    `);
+    const records = mistakes.map(mistake => ({
+      id: crypto.randomUUID(),
+      error_sentence: mistake.error_sentence,
+      correct_sentence: mistake.correct_sentence,
+      explanation: mistake.explanation || null,
+      type: mistake.type,
+      status: 'unlearned',
+      next_review_at: nextReviewAtFormatted,
+      review_stage: 0,
+      review_count: 0,
+    }));
 
     console.log('[Batch API] Inserting mistakes...');
-    for (const mistake of mistakes) {
-      const id = crypto.randomUUID();  // Use global crypto like single insert
-      const { nextReviewAt } = calculateNextReviewDate(0, false, now);
 
-      insertStmt.run(
-        id,
-        mistake.error_sentence,
-        mistake.correct_sentence,
-        mistake.explanation,
-        mistake.type,
-        formatDateForDb(nextReviewAt)
-      );
+    const { error } = await supabase.from('mistakes').insert(records);
 
-      createdMistakes.push({ id, ...mistake });
+    if (error) {
+      throw error;
     }
-    console.log('[Batch API] All mistakes inserted successfully');
+
+    console.log('[Batch API] All mistakes inserted successfully:', records.length);
 
     return NextResponse.json({
-      message: `Successfully created ${createdMistakes.length} mistakes`,
-      count: createdMistakes.length,
-      mistakes: createdMistakes
+      message: `Successfully created ${records.length} mistakes`,
+      count: records.length,
+      mistakes: records
     }, { status: 201 });
   } catch (error) {
     console.error('[Batch API] Error creating batch mistakes:', error);

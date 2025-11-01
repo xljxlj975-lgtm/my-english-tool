@@ -172,7 +172,7 @@ export default function ReviewPage() {
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6 min-h-[300px] flex flex-col justify-center">
           {!showAnswer ? (
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-600 mb-4">What's wrong with this sentence?</h2>
+              <h2 className="text-lg font-semibold text-gray-600 mb-4">What&apos;s wrong with this sentence?</h2>
               <p className="text-2xl text-gray-800 leading-relaxed">
                 {currentMistake.error_sentence}
               </p>
