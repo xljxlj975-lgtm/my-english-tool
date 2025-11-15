@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
@@ -14,7 +14,7 @@ const MISTAKE_TYPES = [
   { value: 'pronunciation', label: '发音' }
 ];
 
-export default function AddMistake() {
+function AddMistakeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'single' | 'batch'>('single');
@@ -357,5 +357,13 @@ export default function AddMistake() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AddMistakePage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-gray-500">Loading...</div>}>
+      <AddMistakeContent />
+    </Suspense>
   );
 }
