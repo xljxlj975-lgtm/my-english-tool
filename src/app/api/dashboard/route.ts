@@ -23,6 +23,31 @@ function extractErrorMessage(error: unknown): string {
   return 'Failed to fetch dashboard data';
 }
 
+function isMissingColumnError(error: unknown, column: string): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const code = (error as { code?: unknown }).code;
+  const message = (error as { message?: unknown }).message;
+  const details = (error as { details?: unknown }).details;
+
+  if (typeof code === 'string' && code.trim() === '42703') {
+    return true;
+  }
+
+  const needle = column.toLowerCase();
+  if (typeof message === 'string' && message.toLowerCase().includes(needle)) {
+    return true;
+  }
+
+  if (typeof details === 'string' && details.toLowerCase().includes(needle)) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function GET() {
   try {
     const supabase = getSupabaseClient();
@@ -100,7 +125,6 @@ export async function GET() {
     if (todayReviewResult.error) throw todayReviewResult.error;
     if (todayAllMistakes.error) throw todayAllMistakes.error;
     if (backlogMistakes.error) throw backlogMistakes.error;
-    if (todayCompletedResult.error) throw todayCompletedResult.error;
     if (totalResult.error) throw totalResult.error;
     if (learnedResult.error) throw learnedResult.error;
     if (unlearnedResult.error) throw unlearnedResult.error;
@@ -171,9 +195,25 @@ export async function GET() {
       }
     }
 
+    let lastReviewedColumnMissing = false;
+    if (todayCompletedResult.error) {
+      if (isMissingColumnError(todayCompletedResult.error, 'last_reviewed_at')) {
+        lastReviewedColumnMissing = true;
+        console.warn(
+          'last_reviewed_at column missing on mistakes table. Falling back to zero for todayCompletedCount. Please run the v2.0 migrations.'
+        );
+      } else {
+        throw todayCompletedResult.error;
+      }
+    }
+
+    const todayCompletedCount = lastReviewedColumnMissing
+      ? 0
+      : (todayCompletedResult.count || 0);
+
     return NextResponse.json({
       todayReviewCount: todayNeedsReview.length, // v2.0: 今日需要复习的实际数量
-      todayCompletedCount: todayCompletedResult.count || 0, // v2.0: 今日已完成
+      todayCompletedCount, // v2.0: 今日已完成
       backlogCount: backlogNeedsReview.length, // v2.0: 积压数量
       dailyTarget: settings.daily_target, // v2.0: Daily Target设置
       totalMistakes: totalResult.count || 0,
