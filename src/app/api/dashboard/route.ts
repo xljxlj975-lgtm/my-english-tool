@@ -3,6 +3,26 @@ import { getSupabaseClient, Mistake } from '@/lib/database';
 import { formatDateForDb } from '@/lib/spaced-repetition';
 import { getSettings } from '@/lib/settings';
 
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message;
+    }
+
+    const details = (error as { details?: unknown }).details;
+    if (typeof details === 'string' && details.trim().length > 0) {
+      return details;
+    }
+  }
+
+  return 'Failed to fetch dashboard data';
+}
+
 export async function GET() {
   try {
     const supabase = getSupabaseClient();
@@ -166,10 +186,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : 'Failed to fetch dashboard data';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: extractErrorMessage(error) }, { status: 500 });
   }
 }
