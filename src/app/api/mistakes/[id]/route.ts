@@ -35,13 +35,23 @@ export async function PUT(
       return NextResponse.json({ error: 'Mistake not found' }, { status: 404 });
     }
 
-    // Calculate new review date and stage
+    // v2.0: 使用实际复习时间计算下次复习日期
     const createdAt = new Date(mistake.created_at);
-    const { nextReviewAt, newStage } = calculateNextReviewDate(mistake.review_stage, isCorrect, createdAt);
+    const lastReviewedAt = mistake.last_reviewed_at ? new Date(mistake.last_reviewed_at) : null;
+    const now = new Date();
+
+    // 传递lastReviewedAt给算法（如果从未复习过则为null）
+    const { nextReviewAt, newStage } = calculateNextReviewDate(
+      mistake.review_stage,
+      isCorrect,
+      lastReviewedAt,
+      createdAt
+    );
 
     // Update status based on completion
     const newStatus = newStage === 4 && isCorrect ? 'learned' : 'unlearned';
 
+    // v2.0: 记录本次复习时间
     const { error: updateError } = await supabase
       .from('mistakes')
       .update({
@@ -49,6 +59,7 @@ export async function PUT(
         next_review_at: formatDateForDb(nextReviewAt),
         review_stage: newStage,
         review_count: (mistake.review_count ?? 0) + 1,
+        last_reviewed_at: formatDateForDb(now), // 新增：记录复习行为
       })
       .eq('id', id);
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 
 interface Mistake {
   id: string;
@@ -11,6 +12,7 @@ interface Mistake {
   explanation?: string;
   type: string;
   status: string;
+  content_type?: ContentType; // v2.0: 内容类型
 }
 
 export default function ReviewPage() {
@@ -168,6 +170,8 @@ export default function ReviewPage() {
   }
 
   const currentMistake = mistakes[currentIndex];
+  // v2.0: 获取当前内容类型的配置
+  const config = getContentTypeConfig(currentMistake?.content_type || 'mistake');
 
   if (!currentMistake) {
     return (
@@ -231,7 +235,9 @@ export default function ReviewPage() {
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6 min-h-[300px] flex flex-col justify-center">
           {!showAnswer ? (
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-600 mb-4">What&apos;s wrong with this sentence?</h2>
+              {/* v2.0: 根据content_type显示不同的提示 */}
+              <div className="text-4xl mb-2">{config.icon}</div>
+              <h2 className="text-lg font-semibold text-gray-600 mb-4">{config.reviewPrompt}</h2>
               <p className="text-2xl text-gray-800 leading-relaxed">
                 {currentMistake.error_sentence}
               </p>
@@ -246,7 +252,9 @@ export default function ReviewPage() {
             </div>
           ) : (
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-green-600 mb-4">Correct Answer:</h2>
+              {/* v2.0: 根据content_type显示不同的答案提示 */}
+              <div className="text-4xl mb-2">✅</div>
+              <h2 className="text-lg font-semibold text-green-600 mb-4">{config.answerPrompt}</h2>
               <p className="text-2xl text-gray-800 leading-relaxed mb-6">
                 {currentMistake.correct_sentence}
               </p>
@@ -261,6 +269,9 @@ export default function ReviewPage() {
 
               <div className="text-sm text-gray-500 mb-6">
                 <span className="bg-gray-100 px-3 py-1 rounded-full mr-2">
+                  {config.icon} {config.label}
+                </span>
+                <span className="bg-gray-100 px-3 py-1 rounded-full">
                   Type: {currentMistake.type}
                 </span>
               </div>

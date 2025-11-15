@@ -63,17 +63,29 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseClient();
     const body = await request.json();
 
-    const { error_sentence, correct_sentence, explanation, type = 'uncategorized' } = body;
+    const {
+      error_sentence,
+      correct_sentence,
+      explanation,
+      type = 'uncategorized',
+      content_type = 'mistake', // v2.0: 新增内容类型，默认为mistake
+    } = body;
 
     if (!error_sentence || !correct_sentence) {
       return NextResponse.json({ error: 'Error sentence and correct sentence are required' }, { status: 400 });
+    }
+
+    // v2.0: 验证content_type
+    if (content_type && !['mistake', 'expression'].includes(content_type)) {
+      return NextResponse.json({ error: 'content_type must be "mistake" or "expression"' }, { status: 400 });
     }
 
     const now = new Date();
     const id = crypto.randomUUID();
 
     // Calculate initial review date (Day 0 - same day)
-    const { nextReviewAt } = calculateNextReviewDate(0, false, now);
+    // v2.0: 首次创建时lastReviewedAt为null，使用createdAt作为基准
+    const { nextReviewAt } = calculateNextReviewDate(0, false, null, now);
 
     const { error } = await supabase.from('mistakes').insert({
       id,
@@ -81,17 +93,19 @@ export async function POST(request: NextRequest) {
       correct_sentence,
       explanation: explanation || null,
       type,
+      content_type, // v2.0: 保存内容类型
       status: 'unlearned',
       next_review_at: formatDateForDb(nextReviewAt),
       review_stage: 0,
       review_count: 0,
+      last_reviewed_at: null, // v2.0: 初始为null表示未复习过
     });
 
     if (error) {
       throw error;
     }
 
-    console.log('[POST /api/mistakes] Inserted mistake:', id);
+    console.log('[POST /api/mistakes] Inserted mistake:', id, 'content_type:', content_type);
 
     return NextResponse.json({ id, message: 'Mistake created successfully' }, { status: 201 });
   } catch (error) {

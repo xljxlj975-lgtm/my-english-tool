@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/database';
+import { getSupabaseClient, Mistake } from '@/lib/database';
 import { formatDateForDb } from '@/lib/spaced-repetition';
+import { getSettings } from '@/lib/settings';
 
 export async function GET() {
   try {
@@ -14,8 +15,14 @@ export async function GET() {
 
     const todayRange = [formatDateForDb(today), formatDateForDb(tomorrow)] as const;
 
+    // v2.0: 获取Daily Target设置
+    const settings = await getSettings();
+
     const [
       todayReviewResult,
+      todayAllMistakes,
+      backlogMistakes,
+      todayCompletedResult,
       totalResult,
       learnedResult,
       unlearnedResult,
@@ -23,11 +30,29 @@ export async function GET() {
       recentResult,
       learnedReviewsResult
     ] = await Promise.all([
+      // 今日复习队列（计数）
       supabase
         .from('mistakes')
         .select('*', { count: 'exact', head: true })
         .gte('next_review_at', todayRange[0])
         .lt('next_review_at', todayRange[1]),
+      // v2.0: 今日所有需要复习的条目（用于过滤）
+      supabase
+        .from('mistakes')
+        .select('*')
+        .gte('next_review_at', todayRange[0])
+        .lt('next_review_at', todayRange[1]),
+      // v2.0: Backlog - 所有过期未复习的条目
+      supabase
+        .from('mistakes')
+        .select('*')
+        .lt('next_review_at', todayRange[0]),
+      // v2.0: 今日已完成复习的数量（last_reviewed_at在今天）
+      supabase
+        .from('mistakes')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_reviewed_at', todayRange[0])
+        .lt('last_reviewed_at', todayRange[1]),
       supabase.from('mistakes').select('*', { count: 'exact', head: true }),
       supabase
         .from('mistakes')
@@ -53,12 +78,28 @@ export async function GET() {
     ]);
 
     if (todayReviewResult.error) throw todayReviewResult.error;
+    if (todayAllMistakes.error) throw todayAllMistakes.error;
+    if (backlogMistakes.error) throw backlogMistakes.error;
+    if (todayCompletedResult.error) throw todayCompletedResult.error;
     if (totalResult.error) throw totalResult.error;
     if (learnedResult.error) throw learnedResult.error;
     if (unlearnedResult.error) throw unlearnedResult.error;
     if (typeResult.error) throw typeResult.error;
     if (recentResult.error) throw recentResult.error;
     if (learnedReviewsResult.error) throw learnedReviewsResult.error;
+
+    // v2.0: 过滤出真正需要复习的条目（未复习或需要重新复习）
+    const filterNeedsReview = (items: Mistake[]) => {
+      return items.filter(item => {
+        if (!item.last_reviewed_at) return true; // 从未复习过
+        const lastReviewed = new Date(item.last_reviewed_at);
+        const nextReview = new Date(item.next_review_at);
+        return lastReviewed < nextReview; // 上次复习早于下次计划复习时间
+      });
+    };
+
+    const todayNeedsReview = filterNeedsReview(todayAllMistakes.data || []);
+    const backlogNeedsReview = filterNeedsReview(backlogMistakes.data || []);
 
     // Get mistakes by type
     const typeCounts: Record<string, number> = {};
@@ -111,7 +152,10 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      todayReviewCount: todayReviewResult.count || 0,
+      todayReviewCount: todayNeedsReview.length, // v2.0: 今日需要复习的实际数量
+      todayCompletedCount: todayCompletedResult.count || 0, // v2.0: 今日已完成
+      backlogCount: backlogNeedsReview.length, // v2.0: 积压数量
+      dailyTarget: settings.daily_target, // v2.0: Daily Target设置
       totalMistakes: totalResult.count || 0,
       learnedMistakes: learnedResult.count || 0,
       unlearnedMistakes: unlearnedResult.count || 0,

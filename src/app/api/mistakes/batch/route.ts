@@ -9,11 +9,16 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseClient();
     console.log('[Batch API] Supabase client initialized');
     
-    const { batchText, type = 'uncategorized' } = await request.json();
-    console.log('[Batch API] Received batch text:', batchText?.length || 0, 'characters');
+    const { batchText, type = 'uncategorized', content_type = 'mistake' } = await request.json();
+    console.log('[Batch API] Received batch text:', batchText?.length || 0, 'characters', 'content_type:', content_type);
 
     if (!batchText) {
       return NextResponse.json({ error: 'Batch text is required' }, { status: 400 });
+    }
+
+    // v2.0: 验证content_type
+    if (content_type && !['mistake', 'expression'].includes(content_type)) {
+      return NextResponse.json({ error: 'content_type must be "mistake" or "expression"' }, { status: 400 });
     }
 
     // Parse batch text - expect format: "error|correct|explanation" per line
@@ -44,7 +49,8 @@ export async function POST(request: NextRequest) {
 
     console.log('[Batch API] Parsed', mistakes.length, 'mistakes');
     const now = new Date();
-    const { nextReviewAt } = calculateNextReviewDate(0, false, now);
+    // v2.0: 首次创建时lastReviewedAt为null
+    const { nextReviewAt } = calculateNextReviewDate(0, false, null, now);
     const nextReviewAtFormatted = formatDateForDb(nextReviewAt);
 
     const records = mistakes.map(mistake => ({
@@ -53,10 +59,12 @@ export async function POST(request: NextRequest) {
       correct_sentence: mistake.correct_sentence,
       explanation: mistake.explanation || null,
       type: mistake.type,
+      content_type, // v2.0: 所有批量导入的条目使用相同的content_type
       status: 'unlearned',
       next_review_at: nextReviewAtFormatted,
       review_stage: 0,
       review_count: 0,
+      last_reviewed_at: null, // v2.0: 初始为null
     }));
 
     console.log('[Batch API] Inserting mistakes...');

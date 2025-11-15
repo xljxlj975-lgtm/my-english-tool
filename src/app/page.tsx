@@ -5,6 +5,9 @@ import Link from 'next/link';
 
 interface DashboardData {
   todayReviewCount: number;
+  todayCompletedCount: number; // v2.0: 今日已完成
+  backlogCount: number; // v2.0: 积压数量
+  dailyTarget: number; // v2.0: Daily Target
   totalMistakes: number;
   learnedMistakes: number;
   unlearnedMistakes: number;
@@ -37,6 +40,9 @@ export default function Home() {
 
       const safeData: DashboardData = {
         todayReviewCount: Number(payload.todayReviewCount) || 0,
+        todayCompletedCount: Number(payload.todayCompletedCount) || 0, // v2.0
+        backlogCount: Number(payload.backlogCount) || 0, // v2.0
+        dailyTarget: Number(payload.dailyTarget) || 50, // v2.0
         totalMistakes: Number(payload.totalMistakes) || 0,
         learnedMistakes: Number(payload.learnedMistakes) || 0,
         unlearnedMistakes: Number(payload.unlearnedMistakes) || 0,
@@ -105,23 +111,58 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Today's Review Card */}
+        {/* Today's Review Card - v2.0: 显示Daily Target进度 */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800">
+            <div className="flex-1">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                 Today&apos;s Review
               </h2>
+              {/* v2.0: Daily Target进度 */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-600">
+                    Progress: {dashboardData.todayCompletedCount} / {dashboardData.dailyTarget}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {Math.round((dashboardData.todayCompletedCount / dashboardData.dailyTarget) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min((dashboardData.todayCompletedCount / dashboardData.dailyTarget) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+              {/* v2.0: 显示待复习数量 */}
               <p className="text-gray-600">
-                {dashboardData.todayReviewCount} mistakes to review
+                <span className="font-semibold text-blue-600">{dashboardData.todayReviewCount}</span> items to review today
               </p>
+              {/* v2.0: Backlog警告 */}
+              {dashboardData.backlogCount > 0 && (
+                <p className="text-orange-600 text-sm mt-1">
+                  ⚠️ {dashboardData.backlogCount} items in backlog
+                </p>
+              )}
             </div>
-            <Link
-              href="/review"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Start Review ▶
-            </Link>
+            <div className="flex flex-col space-y-2 ml-4">
+              <Link
+                href="/review"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center whitespace-nowrap"
+              >
+                Start Review ▶
+              </Link>
+              {/* v2.0: Clear Backlog按钮 */}
+              {dashboardData.backlogCount > 0 && (
+                <Link
+                  href="/review?mode=backlog"
+                  className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium text-center text-sm whitespace-nowrap"
+                >
+                  Clear Backlog
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -145,16 +186,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Quick Actions - v2.0: 分离Mistake和Expression入口 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
-            href="/add"
+            href="/add?type=mistake"
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">➕</div>
+              <div className="text-4xl mb-4">❌</div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Add Mistake</h3>
-              <p className="text-gray-600">Add a new mistake to review</p>
+              <p className="text-gray-600 text-sm">Add error corrections</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/add?type=expression"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-4">💡</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Add Expression</h3>
+              <p className="text-gray-600 text-sm">Add better expressions</p>
             </div>
           </Link>
 
@@ -164,19 +216,19 @@ export default function Home() {
           >
             <div className="text-center">
               <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Mistake Library</h3>
-              <p className="text-gray-600">Browse and manage your mistakes</p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Library</h3>
+              <p className="text-gray-600 text-sm">Browse and manage</p>
             </div>
           </Link>
 
           <Link
-            href="/calendar"
+            href="/settings"
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">📅</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Review Calendar</h3>
-              <p className="text-gray-600">View your review schedule</p>
+              <div className="text-4xl mb-4">⚙️</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Settings</h3>
+              <p className="text-gray-600 text-sm">Daily target config</p>
             </div>
           </Link>
         </div>

@@ -11,6 +11,8 @@ export interface Mistake {
   next_review_at: string;
   review_stage: number;
   review_count: number;
+  content_type?: 'mistake' | 'expression'; // v2.0: 区分错误和表达优化
+  last_reviewed_at?: string | null; // v2.0: 记录实际复习时间
 }
 
 let cachedClient: SupabaseClient | null = null;
