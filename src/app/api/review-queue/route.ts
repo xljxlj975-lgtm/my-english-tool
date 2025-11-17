@@ -37,10 +37,8 @@ export async function GET(request: NextRequest) {
       // Continue mode: Additional 20 items from backlog
       query = query.lt('next_review_at', formatDateForDb(today));
     } else {
-      // Today mode: Items due today
-      query = query
-        .gte('next_review_at', formatDateForDb(today))
-        .lt('next_review_at', formatDateForDb(tomorrow));
+      // Today mode: Items due today or overdue
+      query = query.lt('next_review_at', formatDateForDb(tomorrow));
     }
 
     // Always order by review date (oldest first)
