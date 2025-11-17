@@ -209,8 +209,13 @@ export async function GET() {
       ? 0
       : (todayCompletedResult.count || 0);
 
+    // v2.0修复: todayReviewCount应该显示今天实际可以复习的数量（受daily_target限制）
+    // 而不是所有积压的数量。这样可以避免用户看到几百个单词而感到困惑。
+    const actualTodayReviewCount = Math.min(todayNeedsReview.length, settings.daily_target);
+
     return NextResponse.json({
-      todayReviewCount: todayNeedsReview.length, // v2.0: 今日需要复习的实际数量
+      todayReviewCount: actualTodayReviewCount, // v2.0修复: 今天应该复习的数量（受daily_target限制）
+      totalNeedsReview: todayNeedsReview.length, // v2.0新增: 所有需要复习的总数（包括积压）
       todayCompletedCount, // v2.0: 今日已完成
       backlogCount: backlogNeedsReview.length, // v2.0: 积压数量
       dailyTarget: settings.daily_target, // v2.0: Daily Target设置

@@ -48,3 +48,7 @@ data/mistakes.db
 # logs
 server.log
 *.log
+
+# test/debug scripts
+/check-review-data.js
+/test-*.js

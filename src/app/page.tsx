@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface DashboardData {
   todayReviewCount: number;
+  totalNeedsReview?: number; // v2.0修复: 所有需要复习的总数（包括积压）
   todayCompletedCount: number; // v2.0: 今日已完成
   backlogCount: number; // v2.0: 积压数量
   dailyTarget: number; // v2.0: Daily Target
@@ -40,6 +41,7 @@ export default function Home() {
 
       const safeData: DashboardData = {
         todayReviewCount: Number(payload.todayReviewCount) || 0,
+        totalNeedsReview: Number(payload.totalNeedsReview) || 0, // v2.0修复: 总需要复习数
         todayCompletedCount: Number(payload.todayCompletedCount) || 0, // v2.0
         backlogCount: Number(payload.backlogCount) || 0, // v2.0
         dailyTarget: Number(payload.dailyTarget) || 50, // v2.0
@@ -135,32 +137,35 @@ export default function Home() {
                   />
                 </div>
               </div>
-              {/* v2.0: 显示待复习数量 */}
+              {/* v2.0修复: 显示待复习数量，区分今日目标和总积压 */}
               <p className="text-gray-600">
                 <span className="font-semibold text-blue-600">{dashboardData.todayReviewCount}</span> items to review today
               </p>
-              {/* v2.0: Backlog警告 */}
-              {dashboardData.backlogCount > 0 && (
-                <p className="text-orange-600 text-sm mt-1">
-                  ⚠️ {dashboardData.backlogCount} items in backlog
-                </p>
+              {/* v2.0修复: 更清晰的积压提示 */}
+              {dashboardData.totalNeedsReview !== undefined && dashboardData.totalNeedsReview > dashboardData.dailyTarget && (
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
+                  <p className="text-orange-700 font-medium">
+                    📊 Total pending: {dashboardData.totalNeedsReview} items
+                  </p>
+                  <p className="text-orange-600 text-xs mt-1">
+                    You have {dashboardData.totalNeedsReview - dashboardData.dailyTarget} items beyond today&apos;s target.
+                    Keep reviewing daily to clear the backlog!
+                  </p>
+                </div>
               )}
             </div>
             <div className="flex flex-col space-y-2 ml-4">
-              <Link
-                href="/review"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center whitespace-nowrap"
-              >
-                Start Review ▶
-              </Link>
-              {/* v2.0: Clear Backlog按钮 */}
-              {dashboardData.backlogCount > 0 && (
+              {dashboardData.todayReviewCount > 0 ? (
                 <Link
-                  href="/review?mode=backlog"
-                  className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium text-center text-sm whitespace-nowrap"
+                  href="/review"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center whitespace-nowrap"
                 >
-                  Clear Backlog
+                  Start Review ▶
                 </Link>
+              ) : (
+                <div className="bg-green-100 text-green-700 px-6 py-3 rounded-lg font-medium text-center whitespace-nowrap">
+                  ✓ All Done!
+                </div>
               )}
             </div>
           </div>
