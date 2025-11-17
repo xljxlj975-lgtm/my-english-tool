@@ -37,12 +37,14 @@ export async function GET(request: NextRequest) {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
+      // Include anything due before tomorrow (today's queue + overdue backlog)
       query = query
-        .gte('next_review_at', formatDateForDb(today))
-        .lt('next_review_at', formatDateForDb(tomorrow));
+        .lt('next_review_at', formatDateForDb(tomorrow))
+        .order('next_review_at', { ascending: true });
+    } else {
+      query = query.order('created_at', { ascending: false });
     }
-
-    query = query.order('created_at', { ascending: false });
+    // When todayReview=true we already ordered by next_review_at
 
     const { data, error } = await query;
 

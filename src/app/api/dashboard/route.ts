@@ -79,13 +79,11 @@ export async function GET() {
       supabase
         .from('mistakes')
         .select('*', { count: 'exact', head: true })
-        .gte('next_review_at', todayRange[0])
         .lt('next_review_at', todayRange[1]),
-      // v2.0: 今日所有需要复习的条目（用于过滤）
+      // v2.0: 今日及之前需要复习的条目（用于过滤）
       supabase
         .from('mistakes')
         .select('*')
-        .gte('next_review_at', todayRange[0])
         .lt('next_review_at', todayRange[1]),
       // v2.0: Backlog - 所有过期未复习的条目
       supabase
