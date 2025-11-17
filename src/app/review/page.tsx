@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 
@@ -17,6 +17,18 @@ interface Mistake {
 
 export default function ReviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const mode = searchParams?.get('mode') || 'today';
+  const modeLabel = useMemo(() => {
+    switch (mode) {
+      case 'backlog':
+        return 'backlog items';
+      case 'continue':
+        return 'extra backlog items';
+      default:
+        return "today's mistakes";
+    }
+  }, [mode]);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -24,11 +36,15 @@ export default function ReviewPage() {
   const [reviewing, setReviewing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fetchTodayMistakes = useCallback(async () => {
+  const fetchReviewItems = useCallback(async () => {
     try {
       setLoading(true);
       setErrorMessage(null);
-      const response = await fetch('/api/mistakes?todayReview=true');
+      const params = new URLSearchParams();
+      if (mode) {
+        params.set('mode', mode);
+      }
+      const response = await fetch(`/api/review-queue?${params.toString()}`);
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -40,7 +56,7 @@ export default function ReviewPage() {
       }
 
       if (!Array.isArray(payload)) {
-        throw new Error('Unexpected response format from /api/mistakes');
+        throw new Error('Unexpected response format from /api/review-queue');
       }
 
       setMistakes(payload);
@@ -48,17 +64,17 @@ export default function ReviewPage() {
       setCurrentIndex(0);
       setShowAnswer(false);
     } catch (error) {
-      console.error("Error fetching today's mistakes:", error);
+      console.error('Error fetching review items:', error);
       setMistakes([]);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to fetch today's mistakes");
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch review queue');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
-    fetchTodayMistakes();
-  }, [fetchTodayMistakes]);
+    fetchReviewItems();
+  }, [fetchReviewItems]);
 
   const handleReviewResponse = async (isCorrect: boolean) => {
     if (currentIndex >= mistakes.length) return;
@@ -95,7 +111,7 @@ export default function ReviewPage() {
 
   const startReview = () => {
     if (mistakes.length === 0) {
-      alert('No mistakes to review today!');
+      alert('No mistakes to review in this mode!');
       return;
     }
     setReviewing(true);
@@ -134,7 +150,7 @@ export default function ReviewPage() {
                 Ready to Review?
               </h2>
               <p className="text-gray-600 text-lg">
-                You have {mistakes.length} mistakes to review today.
+                You have {mistakes.length} {modeLabel} to review.
               </p>
             </div>
 
@@ -148,16 +164,22 @@ export default function ReviewPage() {
               </button>
 
               {mistakes.length === 0 && (
-                <Link
-                  href="/add"
-                  className="block text-blue-600 hover:text-blue-800"
-                >
-                  Add some mistakes to get started
-                </Link>
+                mode === 'backlog' ? (
+                  <Link href="/review" className="block text-blue-600 hover:text-blue-800">
+                    Switch to today&apos;s queue
+                  </Link>
+                ) : (
+                  <Link
+                    href="/add"
+                    className="block text-blue-600 hover:text-blue-800"
+                  >
+                    Add some mistakes to get started
+                  </Link>
+                )
               )}
 
               <button
-                onClick={fetchTodayMistakes}
+                onClick={fetchReviewItems}
                 className="block w-full mt-4 text-blue-600 hover:text-blue-800"
               >
                 Refresh list
@@ -183,7 +205,7 @@ export default function ReviewPage() {
           </p>
           <div className="space-x-2">
             <button
-              onClick={fetchTodayMistakes}
+              onClick={fetchReviewItems}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Refresh
