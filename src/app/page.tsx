@@ -12,7 +12,6 @@ interface DashboardData {
   totalMistakes: number;
   learnedMistakes: number;
   unlearnedMistakes: number;
-  mistakesByType: Array<{ type: string; count: number }>;
   recentMistakes: Array<{ date: string; count: number }>;
   streak: number;
   lastUpdated: string;
@@ -48,7 +47,6 @@ export default function Home() {
         totalMistakes: Number(payload.totalMistakes) || 0,
         learnedMistakes: Number(payload.learnedMistakes) || 0,
         unlearnedMistakes: Number(payload.unlearnedMistakes) || 0,
-        mistakesByType: Array.isArray(payload.mistakesByType) ? payload.mistakesByType : [],
         recentMistakes: Array.isArray(payload.recentMistakes) ? payload.recentMistakes : [],
         streak: Number(payload.streak) || 0,
         lastUpdated: typeof payload.lastUpdated === 'string' ? payload.lastUpdated : new Date().toISOString()
@@ -238,20 +236,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Mistakes by Type */}
-        {dashboardData.mistakesByType.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Mistakes by Type</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {dashboardData.mistakesByType.map(({ type, count }) => (
-                <div key={type} className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{count}</p>
-                  <p className="text-sm text-gray-600 capitalize">{type}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

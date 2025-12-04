@@ -5,15 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 
-const MISTAKE_TYPES = [
-  { value: 'uncategorized', label: '未分类' },
-  { value: 'grammar', label: '语法' },
-  { value: 'vocabulary', label: '词汇' },
-  { value: 'collocation', label: '搭配' },
-  { value: 'tense', label: '时态' },
-  { value: 'pronunciation', label: '发音' }
-];
-
 function AddMistakeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +19,6 @@ function AddMistakeContent() {
   const [errorSentence, setErrorSentence] = useState('');
   const [correctSentence, setCorrectSentence] = useState('');
   const [explanation, setExplanation] = useState('');
-  const [type, setType] = useState('uncategorized');
 
   // Batch entry form
   const [batchText, setBatchText] = useState('');
@@ -61,7 +51,6 @@ function AddMistakeContent() {
           error_sentence: errorSentence,
           correct_sentence: correctSentence,
           explanation,
-          type,
           content_type: contentType, // v2.0: 包含内容类型
         }),
       });
@@ -90,7 +79,7 @@ function AddMistakeContent() {
     setError('');
 
     try {
-      console.log('[批量添加] 开始提交...', { batchText, type });
+      console.log('[批量添加] 开始提交...', { batchText });
       
       const response = await fetch('/api/mistakes/batch', {
         method: 'POST',
@@ -99,7 +88,6 @@ function AddMistakeContent() {
         },
         body: JSON.stringify({
           batchText,
-          type,
           content_type: contentType, // v2.0: 包含内容类型
         }),
       });
@@ -247,23 +235,6 @@ function AddMistakeContent() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  类型
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {MISTAKE_TYPES.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -324,23 +295,6 @@ function AddMistakeContent() {
                   required
                   placeholder="I have went to school | I have gone to school | 使用have时应该用过去分词&#10;He don't like it | He doesn't like it | 第三人称单数用doesn't"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  默认类型
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {MISTAKE_TYPES.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className="flex justify-end">

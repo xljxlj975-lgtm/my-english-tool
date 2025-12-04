@@ -6,7 +6,6 @@ export interface Mistake {
   error_sentence: string;
   correct_sentence: string;
   explanation: string | null;
-  type: 'grammar' | 'vocabulary' | 'collocation' | 'tense' | 'pronunciation' | 'uncategorized';
   status: 'unlearned' | 'learned';
   next_review_at: string;
   review_stage: number;

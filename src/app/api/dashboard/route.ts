@@ -71,7 +71,6 @@ export async function GET() {
       totalResult,
       learnedResult,
       unlearnedResult,
-      typeResult,
       recentResult,
       learnedReviewsResult
     ] = await Promise.all([
@@ -105,7 +104,6 @@ export async function GET() {
         .from('mistakes')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'unlearned'),
-      supabase.from('mistakes').select('type'),
       supabase
         .from('mistakes')
         .select('created_at')
@@ -126,7 +124,6 @@ export async function GET() {
     if (totalResult.error) throw totalResult.error;
     if (learnedResult.error) throw learnedResult.error;
     if (unlearnedResult.error) throw unlearnedResult.error;
-    if (typeResult.error) throw typeResult.error;
     if (recentResult.error) throw recentResult.error;
     if (learnedReviewsResult.error) throw learnedReviewsResult.error;
 
@@ -142,17 +139,6 @@ export async function GET() {
 
     const todayNeedsReview = filterNeedsReview(todayAllMistakes.data || []);
     const backlogNeedsReview = filterNeedsReview(backlogMistakes.data || []);
-
-    // Get mistakes by type
-    const typeCounts: Record<string, number> = {};
-    (typeResult.data || []).forEach(({ type }) => {
-      const key = (type as string) || 'uncategorized';
-      typeCounts[key] = (typeCounts[key] || 0) + 1;
-    });
-
-    const mistakesByType = Object.entries(typeCounts)
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count);
 
     // Get recent mistakes (last 7 days)
     const sevenDaysAgo = new Date(today);
@@ -222,7 +208,6 @@ export async function GET() {
       totalMistakes: totalResult.count || 0,
       learnedMistakes: learnedResult.count || 0,
       unlearnedMistakes: unlearnedResult.count || 0,
-      mistakesByType,
       recentMistakes,
       streak,
       lastUpdated: new Date().toISOString()

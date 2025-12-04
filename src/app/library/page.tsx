@@ -9,22 +9,11 @@ interface Mistake {
   error_sentence: string;
   correct_sentence: string;
   explanation?: string;
-  type: string;
   status: string;
   next_review_at: string;
   review_stage: number;
   review_count: number;
 }
-
-const MISTAKE_TYPES = [
-  { value: '', label: 'All Types' },
-  { value: 'uncategorized', label: 'Uncategorized' },
-  { value: 'grammar', label: 'Grammar' },
-  { value: 'vocabulary', label: 'Vocabulary' },
-  { value: 'collocation', label: 'Collocation' },
-  { value: 'tense', label: 'Tense' },
-  { value: 'pronunciation', label: 'Pronunciation' }
-];
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Status' },
@@ -36,7 +25,6 @@ export default function LibraryPage() {
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fetchMistakes = useCallback(async () => {
@@ -46,7 +34,6 @@ export default function LibraryPage() {
       const params = new URLSearchParams();
 
       if (search) params.append('search', search);
-      if (typeFilter) params.append('type', typeFilter);
       if (statusFilter) params.append('status', statusFilter);
 
       const queryString = params.toString();
@@ -74,7 +61,7 @@ export default function LibraryPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, statusFilter]);
+  }, [search, statusFilter]);
 
   useEffect(() => {
     fetchMistakes();
@@ -131,7 +118,7 @@ export default function LibraryPage() {
               {errorMessage}
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
               <input
@@ -141,19 +128,6 @@ export default function LibraryPage() {
                 placeholder="Search mistakes..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {MISTAKE_TYPES.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
             </div>
 
             <div>
@@ -181,11 +155,11 @@ export default function LibraryPage() {
             <div className="text-4xl mb-4">📚</div>
             <h2 className="text-xl font-semibold text-gray-800 mb-2">No Mistakes Found</h2>
             <p className="text-gray-600">
-              {search || typeFilter || statusFilter
+              {search || statusFilter
                 ? 'Try adjusting your filters or search terms.'
                 : 'Add some mistakes to get started!'}
             </p>
-            {!search && !typeFilter && !statusFilter && (
+            {!search && !statusFilter && (
               <Link
                 href="/add"
                 className="inline-block mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -211,10 +185,6 @@ export default function LibraryPage() {
                   </div>
 
                   <div className="lg:col-span-1">
-                    <div className="mb-2">
-                      <span className="text-sm text-gray-600">Type: </span>
-                      <span className="text-sm font-medium capitalize">{mistake.type}</span>
-                    </div>
                     <div className="mb-2">
                       <span className="text-sm text-gray-600">Status: </span>
                       <span className={`text-sm font-medium ${

@@ -19,8 +19,7 @@ async function testAPIs() {
       body: JSON.stringify({
         error_sentence: 'I have went to the store yesterday.',
         correct_sentence: 'I went to the store yesterday.',
-        explanation: 'Use simple past for specific completed actions in the past.',
-        type: 'grammar'
+        explanation: 'Use simple past for specific completed actions in the past.'
       })
     });
     const addResult = await addResponse.json();
@@ -39,7 +38,6 @@ async function testAPIs() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         batchText: 'He don\'t like it | He doesn\'t like it | Use doesn\'t with third person singular\nShe have a book | She has a book | Use has with third person singular',
-        type: 'grammar'
       })
     });
     const batchResult = await batchResponse.json();

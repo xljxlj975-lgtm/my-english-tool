@@ -7,7 +7,6 @@ type CalendarMistake = {
   error_sentence: string;
   correct_sentence: string;
   explanation: string | null;
-  type: string;
   status: string;
   created_at: string | null;
 };
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
 
       const { data: mistakesRows, error: mistakesError } = await supabase
         .from('mistakes')
-        .select<CalendarMistake>('id, error_sentence, correct_sentence, explanation, type, status, created_at')
+        .select<CalendarMistake>('id, error_sentence, correct_sentence, explanation, status, created_at')
         .gte('next_review_at', formatDateForDb(date))
         .lt('next_review_at', formatDateForDb(nextDate))
         .order('created_at', { ascending: false });

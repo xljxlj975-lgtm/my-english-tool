@@ -44,7 +44,6 @@
 - Today's review count and completion status
 - Total mistakes, learned vs. in-progress statistics
 - Learning streak tracking
-- Mistakes categorized by type (grammar, vocabulary, collocation, etc.)
 - Recent activity overview
 
 ### 🗓️ Spaced Repetition Algorithm
@@ -101,6 +100,7 @@ SUPABASE_ANON_KEY=your-anon-key
 Go to your Supabase Dashboard → SQL Editor, and run these migrations in order:
 - `migrations/v2.0-add-content-type-and-last-reviewed.sql`
 - `migrations/v2.0-add-user-settings.sql`
+- `migrations/v2.1-remove-mistake-type.sql`
 
 See `migrations/README.md` for detailed instructions.
 
@@ -172,7 +172,7 @@ http://localhost:3000
 ## API Endpoints
 
 ### Mistakes
-- `GET /api/mistakes` - Get all mistakes (with optional filters)
+- `GET /api/mistakes` - Get all mistakes (supports status + search filters)
 - `POST /api/mistakes` - Create a new mistake
 - `PUT /api/mistakes/[id]` - Update mistake (for review responses)
 - `DELETE /api/mistakes/[id]` - Delete a mistake
@@ -187,7 +187,6 @@ http://localhost:3000
 ## Database Schema
 
 ```sql
-create type mistake_type as enum ('grammar', 'vocabulary', 'collocation', 'tense', 'pronunciation', 'uncategorized');
 create type mistake_status as enum ('unlearned', 'learned');
 
 create table public.mistakes (
@@ -196,15 +195,16 @@ create table public.mistakes (
   error_sentence text not null,
   correct_sentence text not null,
   explanation text,
-  type mistake_type not null default 'uncategorized',
   status mistake_status not null default 'unlearned',
   next_review_at timestamptz not null,
   review_stage integer not null default 0,
-  review_count integer not null default 0
+  review_count integer not null default 0,
+  content_type content_type not null default 'mistake',
+  last_reviewed_at timestamptz
 );
 ```
 
-> ℹ️ If you prefer not to create custom enum types, you can use `text` columns with check constraints instead. Ensure Row Level Security is disabled or policies allow your service role key to read/write.
+> ℹ️ If you prefer not to create custom enum types (like `mistake_status` or `content_type`), you can use `text` columns with check constraints instead. Ensure Row Level Security is disabled or policies allow your service role key to read/write.
 
 ## Project Structure
 

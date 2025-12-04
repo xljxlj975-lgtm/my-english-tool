@@ -8,16 +8,11 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseClient();
     const searchParams = request.nextUrl.searchParams;
 
-    const type = searchParams.get('type');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     const todayReview = searchParams.get('todayReview');
 
     let query = supabase.from('mistakes').select('*');
-
-    if (type) {
-      query = query.eq('type', type);
-    }
 
     if (status) {
       query = query.eq('status', status);
@@ -69,7 +64,6 @@ export async function POST(request: NextRequest) {
       error_sentence,
       correct_sentence,
       explanation,
-      type = 'uncategorized',
       content_type = 'mistake', // v2.0: 新增内容类型，默认为mistake
     } = body;
 
@@ -94,7 +88,6 @@ export async function POST(request: NextRequest) {
       error_sentence,
       correct_sentence,
       explanation: explanation || null,
-      type,
       content_type, // v2.0: 保存内容类型
       status: 'unlearned',
       next_review_at: formatDateForDb(nextReviewAt),

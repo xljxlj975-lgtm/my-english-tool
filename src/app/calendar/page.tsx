@@ -10,7 +10,6 @@ interface Mistake {
   error_sentence: string;
   correct_sentence: string;
   explanation?: string;
-  type: string;
   status: string;
 }
 
@@ -304,9 +303,7 @@ export default function CalendarPage() {
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        Type: {mistake.type} | Status: {mistake.status}
-                      </span>
+                      <span className="text-sm text-gray-500">Status: {mistake.status}</span>
                     </div>
                   </div>
                 ))}

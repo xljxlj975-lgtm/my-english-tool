@@ -1,8 +1,7 @@
 // 测试批量添加 API
 const testBatchAPI = async () => {
   const testData = {
-    batchText: "I have went to school | I have gone to school | 测试\nHe don't like it | He doesn't like it | 测试2",
-    type: "grammar"
+    batchText: "I have went to school | I have gone to school | 测试\nHe don't like it | He doesn't like it | 测试2"
   };
 
   console.log('📤 发送测试数据到 API...');
@@ -34,4 +33,3 @@ const testBatchAPI = async () => {
 };
 
 testBatchAPI();
-

@@ -1,5 +1,21 @@
 # 数据库Migrations执行说明
 
+## v2.1 Migration
+
+在 v2.1 中我们移除了不再使用的错误分类字段，因此需要执行以下 migration：
+
+### 1. v2.1-remove-mistake-type.sql
+
+**作用**：删除 `mistakes.type` 列以及 `mistake_type` 枚举类型
+
+**如何执行**：
+1. 打开 Supabase Dashboard: https://mymwjgngokvxrmxqqvxd.supabase.co
+2. 进入 **SQL Editor** 并点击 **New Query**
+3. 将 `migrations/v2.1-remove-mistake-type.sql` 的内容复制进去
+4. 点击 **Run** 执行，确认没有报错
+
+> ⚠️ 该脚本使用了 `DROP COLUMN IF EXISTS` 和 `DROP TYPE IF EXISTS`，即使字段已经被删除也可以安全重复运行。
+
 ## v2.0 Migrations
 
 本次升级需要执行2个migration文件，按以下顺序执行：

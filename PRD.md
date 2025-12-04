@@ -25,13 +25,6 @@ English Mistake Review Tool 是一款专为英语学习者设计的Web应用程�
 - 错误句子（必填）：用户写错的句子
 - 正确句子（必填）：正确的句子
 - 说明（可选）：对错误的解释或说明
-- 类型（可选）：错误分类
-  - 未分类（默认）
-  - 语法（Grammar）
-  - 词汇（Vocabulary）
-  - 搭配（Collocation）
-  - 时态（Tense）
-  - 发音（Pronunciation）
 
 **业务规则：**
 - 错误句子和正确句子为必填项
@@ -57,7 +50,6 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 - 每行一个错误记录
 - 使用 `|` 分隔字段
 - 说明字段可选
-- 批量添加时使用统一的默认类型
 - 系统自动解析并创建多个错误记录
 
 ### 2.2 间隔重复复习系统
@@ -88,7 +80,6 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 2. **答案展示阶段：**
    - 显示正确句子
    - 显示说明（如果有）
-   - 显示错误类型
    - 提供两个操作按钮：
      - "需要更多练习"（重置到阶段0）
      - "已掌握"（进入下一阶段）
@@ -112,12 +103,7 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 3. **学习中**：状态为"未学习"的错误数量
 4. **连续天数**：连续完成复习的天数
 
-#### 2.3.3 错误类型分布
-**显示内容：**
-- 按类型统计的错误数量
-- 显示各类型错误的占比
-
-#### 2.3.4 快速操作
+#### 2.3.3 快速操作
 **功能入口：**
 - 添加错误
 - 错误库
@@ -130,7 +116,6 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 - 错误句子
 - 正确句子
 - 说明
-- 类型
 - 状态（已学习/学习中）
 - 复习阶段（X/5）
 - 复习次数
@@ -143,7 +128,6 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 - 实时搜索
 
 **筛选功能：**
-- 按类型筛选（全部/语法/词汇/搭配/时态/发音/未分类）
 - 按状态筛选（全部/已学习/学习中）
 
 #### 2.4.3 错误管理
@@ -199,15 +183,6 @@ He don't like it | He doesn't like it | 第三人称单数用doesn't
 
 #### 3.2.1 错误表（mistakes）
 ```sql
-create type mistake_type as enum (
-  'grammar', 
-  'vocabulary', 
-  'collocation', 
-  'tense', 
-  'pronunciation', 
-  'uncategorized'
-);
-
 create type mistake_status as enum ('unlearned', 'learned');
 
 create table public.mistakes (
@@ -216,11 +191,12 @@ create table public.mistakes (
   error_sentence text not null,
   correct_sentence text not null,
   explanation text,
-  type mistake_type not null default 'uncategorized',
   status mistake_status not null default 'unlearned',
   next_review_at timestamptz not null,
   review_stage integer not null default 0,
-  review_count integer not null default 0
+  review_count integer not null default 0,
+  content_type content_type not null default 'mistake',
+  last_reviewed_at timestamptz
 );
 ```
 
@@ -230,11 +206,12 @@ create table public.mistakes (
 - **error_sentence：** 错误句子
 - **correct_sentence：** 正确句子
 - **explanation：** 说明
-- **type：** 错误类型
 - **status：** 学习状态
 - **next_review_at：** 下次复习时间
 - **review_stage：** 当前复习阶段（0-4）
 - **review_count：** 复习次数
+- **content_type：** 内容类型（mistake/expression）
+- **last_reviewed_at：** 最后一次实际复习时间
 
 ### 3.3 API接口设计
 
@@ -243,7 +220,6 @@ create table public.mistakes (
 **GET /api/mistakes**
 - **功能：** 获取错误列表
 - **查询参数：**
-  - `type`：按类型筛选
   - `status`：按状态筛选
   - `search`：搜索关键词
   - `todayReview`：获取今日复习任务
@@ -256,8 +232,7 @@ create table public.mistakes (
   {
     "error_sentence": "错误句子",
     "correct_sentence": "正确句子",
-    "explanation": "说明（可选）",
-    "type": "错误类型（可选）"
+    "explanation": "说明（可选）"
   }
   ```
 - **返回：** 创建的错误ID
@@ -281,8 +256,7 @@ create table public.mistakes (
 - **请求体：**
   ```json
   {
-    "batchText": "批量文本",
-    "type": "默认类型"
+    "batchText": "批量文本"
   }
   ```
 - **返回：** 创建的错误数量
@@ -298,7 +272,6 @@ create table public.mistakes (
     "totalMistakes": 总错误数,
     "learnedMistakes": 已学习数量,
     "unlearnedMistakes": 学习中数量,
-    "mistakesByType": [{"type": "类型", "count": 数量}],
     "recentMistakes": [{"date": "日期", "count": 数量}],
     "streak": 连续天数,
     "lastUpdated": "更新时间"
@@ -343,7 +316,6 @@ create table public.mistakes (
    - 今日复习卡片
    - 统计卡片
    - 快速操作入口
-   - 错误类型分布
 
 2. **添加错误页** - `/add`
    - 单个/批量切换
@@ -501,5 +473,3 @@ SUPABASE_ANON_KEY=...
 **文档版本：** 1.0  
 **最后更新：** 2024年  
 **维护者：** 项目团队
-
-

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseClient();
     console.log('[Batch API] Supabase client initialized');
     
-    const { batchText, type = 'uncategorized', content_type = 'mistake' } = await request.json();
+    const { batchText, content_type = 'mistake' } = await request.json();
     console.log('[Batch API] Received batch text:', batchText?.length || 0, 'characters', 'content_type:', content_type);
 
     if (!batchText) {
@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
             error_sentence,
             correct_sentence,
             explanation: explanation || null,
-            type
           });
         }
       }
@@ -58,7 +57,6 @@ export async function POST(request: NextRequest) {
       error_sentence: mistake.error_sentence,
       correct_sentence: mistake.correct_sentence,
       explanation: mistake.explanation || null,
-      type: mistake.type,
       content_type, // v2.0: 所有批量导入的条目使用相同的content_type
       status: 'unlearned',
       next_review_at: nextReviewAtFormatted,

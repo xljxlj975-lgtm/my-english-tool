@@ -10,7 +10,6 @@ interface Mistake {
   error_sentence: string;
   correct_sentence: string;
   explanation?: string;
-  type: string;
   status: string;
   content_type?: ContentType; // v2.0: 内容类型
 }
@@ -268,11 +267,8 @@ export default function ReviewPage() {
               )}
 
               <div className="text-sm text-gray-500 mb-6">
-                <span className="bg-gray-100 px-3 py-1 rounded-full mr-2">
-                  {config.icon} {config.label}
-                </span>
                 <span className="bg-gray-100 px-3 py-1 rounded-full">
-                  Type: {currentMistake.type}
+                  {config.icon} {config.label}
                 </span>
               </div>
 
