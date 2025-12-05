@@ -77,12 +77,16 @@ export default function ReviewPage() {
         throw new Error('Failed to update mistake');
       }
 
-      // Move to next card
+      if (!isCorrect) {
+        // Stay on the same card so the learner can retry immediately
+        setShowAnswer(false);
+        return;
+      }
+
       if (currentIndex < mistakes.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
-        // Review completed
         alert(`Review completed! You reviewed ${mistakes.length} mistakes.`);
         router.push('/');
       }
