@@ -63,8 +63,10 @@ export async function PUT(
       );
       nextReviewAt = result.nextReviewAt;
       newStage = result.newStage;
-      // Expression is "learned" when it reaches the final stage
-      newStatus = newStage === EXPRESSION_REVIEW_STAGES.length - 1 ? 'learned' : 'unlearned';
+      // Expression is "learned" when: reaches final stage OR already learned (backward compatible)
+      newStatus = (newStage === EXPRESSION_REVIEW_STAGES.length - 1 || mistake.status === 'learned')
+        ? 'learned'
+        : 'unlearned';
     } else {
       // Mistake: Error correction with correct/incorrect + decay for overdue items
       const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
@@ -77,8 +79,18 @@ export async function PUT(
       );
       nextReviewAt = result.nextReviewAt;
       newStage = result.newStage;
-      // Mistake is "learned" when it reaches the final stage AND is marked correct
-      newStatus = newStage === MISTAKE_REVIEW_STAGES.length - 1 && isCorrect ? 'learned' : 'unlearned';
+
+      // Mistake learned status logic (backward compatible):
+      // - If incorrect: always unlearned
+      // - If correct AND (reaches final stage OR already learned): learned
+      // - Otherwise: unlearned
+      if (!isCorrect) {
+        newStatus = 'unlearned';
+      } else if (newStage === MISTAKE_REVIEW_STAGES.length - 1 || mistake.status === 'learned') {
+        newStatus = 'learned';
+      } else {
+        newStatus = 'unlearned';
+      }
     }
 
     // Update the mistake record
