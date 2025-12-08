@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Separated Mistake and Expression Systems**: Completely decoupled error correction and expression upgrade into two independent learning systems
   - **Independent UI Components**: Created `MistakeCard` (red ❌) for error correction and `ExpressionCard` (purple 💡/✨) for expression upgrades
-  - **Separate SRS Algorithms**: Mistakes use [1, 3, 7, 14, 30] day intervals; Expressions use [1, 7, 21] day intervals
+  - **Extended SRS Algorithms with Infinite Ladder**:
+    - Mistakes: 8-stage infinite ladder [1, 3, 7, 14, 30, 60, 120, 240] days
+    - Expressions: 4-stage lightweight system [1, 7, 21, 60] days
+  - **Intelligent Decay Mechanism**: Mistakes that are overdue beyond `interval × 2` automatically drop one stage to reinforce learning
   - **Different Interaction Flows**:
-    - Mistakes: User marks correct/incorrect, can retry immediately if wrong
-    - Expressions: User only acknowledges, always advances to next stage
+    - Mistakes: User marks correct/incorrect, can retry immediately if wrong, subject to decay
+    - Expressions: User only acknowledges, always advances to next stage, no decay
   - **Cognitive Optimization**: Appropriate cues for each learning goal - error correction vs. expression improvement
-  - **API Smart Routing**: Dynamic SRS logic selection based on `content_type`
+  - **API Smart Routing**: Dynamic SRS logic selection based on `content_type` with decay calculation for mistakes
 
 ### 🔧 Fixed
 
