@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/database';
-import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
+import {
+  formatDateForDb,
+  calculateMistakeNextReviewDate,
+  calculateExpressionNextReviewDate,
+  MISTAKE_REVIEW_STAGES,
+  EXPRESSION_REVIEW_STAGES
+} from '@/lib/spaced-repetition';
+import type { ContentType } from '@/lib/content-type';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -14,7 +21,7 @@ export async function PUT(
   try {
     const supabase = getSupabaseClient();
     const { id } = await params;
-    const { isCorrect } = await request.json();
+    const { isCorrect, contentType } = await request.json();
 
     if (typeof isCorrect !== 'boolean') {
       return NextResponse.json({ error: 'isCorrect field is required and must be a boolean' }, { status: 400 });
@@ -35,23 +42,44 @@ export async function PUT(
       return NextResponse.json({ error: 'Mistake not found' }, { status: 404 });
     }
 
-    // v2.0: 使用实际复习时间计算下次复习日期
     const createdAt = new Date(mistake.created_at);
     const lastReviewedAt = mistake.last_reviewed_at ? new Date(mistake.last_reviewed_at) : null;
     const now = new Date();
 
-    // 传递lastReviewedAt给算法（如果从未复习过则为null）
-    const { nextReviewAt, newStage } = calculateNextReviewDate(
-      mistake.review_stage,
-      isCorrect,
-      lastReviewedAt,
-      createdAt
-    );
+    // Determine content type (from request or from mistake record)
+    const actualContentType: ContentType = (contentType || mistake.content_type || 'mistake') as ContentType;
 
-    // Update status based on completion
-    const newStatus = newStage === 4 && isCorrect ? 'learned' : 'unlearned';
+    // Use different SRS logic based on content type
+    let nextReviewAt: Date;
+    let newStage: number;
+    let newStatus: string;
 
-    // v2.0: 记录本次复习时间
+    if (actualContentType === 'expression') {
+      // Expression: Always advances, no error marking
+      const result = calculateExpressionNextReviewDate(
+        mistake.review_stage,
+        lastReviewedAt,
+        createdAt
+      );
+      nextReviewAt = result.nextReviewAt;
+      newStage = result.newStage;
+      // Expression is "learned" when it reaches the final stage
+      newStatus = newStage === EXPRESSION_REVIEW_STAGES.length - 1 ? 'learned' : 'unlearned';
+    } else {
+      // Mistake: Traditional error correction with correct/incorrect
+      const result = calculateMistakeNextReviewDate(
+        mistake.review_stage,
+        isCorrect,
+        lastReviewedAt,
+        createdAt
+      );
+      nextReviewAt = result.nextReviewAt;
+      newStage = result.newStage;
+      // Mistake is "learned" when it reaches the final stage AND is marked correct
+      newStatus = newStage === MISTAKE_REVIEW_STAGES.length - 1 && isCorrect ? 'learned' : 'unlearned';
+    }
+
+    // Update the mistake record
     const { error: updateError } = await supabase
       .from('mistakes')
       .update({
@@ -59,7 +87,7 @@ export async function PUT(
         next_review_at: formatDateForDb(nextReviewAt),
         review_stage: newStage,
         review_count: (mistake.review_count ?? 0) + 1,
-        last_reviewed_at: formatDateForDb(now), // 新增：记录复习行为
+        last_reviewed_at: formatDateForDb(now),
       })
       .eq('id', id);
 
@@ -71,7 +99,8 @@ export async function PUT(
       message: 'Mistake updated successfully',
       newStatus,
       nextReviewAt: formatDateForDb(nextReviewAt),
-      newStage
+      newStage,
+      contentType: actualContentType
     });
   } catch (error) {
     console.error('Error updating mistake:', error);

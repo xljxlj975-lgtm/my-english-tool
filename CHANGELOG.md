@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2025-01-15
 
+### 🏗️ Architecture
+
+- **Separated Mistake and Expression Systems**: Completely decoupled error correction and expression upgrade into two independent learning systems
+  - **Independent UI Components**: Created `MistakeCard` (red ❌) for error correction and `ExpressionCard` (purple 💡/✨) for expression upgrades
+  - **Separate SRS Algorithms**: Mistakes use [1, 3, 7, 14, 30] day intervals; Expressions use [1, 7, 21] day intervals
+  - **Different Interaction Flows**:
+    - Mistakes: User marks correct/incorrect, can retry immediately if wrong
+    - Expressions: User only acknowledges, always advances to next stage
+  - **Cognitive Optimization**: Appropriate cues for each learning goal - error correction vs. expression improvement
+  - **API Smart Routing**: Dynamic SRS logic selection based on `content_type`
+
 ### 🔧 Fixed
 
 - **Critical Bug**: Fixed auto-progression issue where items would advance to the next review stage automatically based on time, even if not reviewed

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
+import MistakeCard from '@/components/MistakeCard';
+import ExpressionCard from '@/components/ExpressionCard';
 
 interface Mistake {
   id: string;
@@ -63,6 +65,7 @@ export default function ReviewPage() {
     if (currentIndex >= mistakes.length) return;
 
     const currentMistake = mistakes[currentIndex];
+    const contentType = currentMistake.content_type || 'mistake';
 
     try {
       const response = await fetch(`/api/mistakes/${currentMistake.id}`, {
@@ -70,24 +73,29 @@ export default function ReviewPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ isCorrect }),
+        body: JSON.stringify({
+          isCorrect,
+          contentType // Pass content type to API for proper SRS logic
+        }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update mistake');
       }
 
-      if (!isCorrect) {
-        // Stay on the same card so the learner can retry immediately
+      // For mistakes: if incorrect, stay on the same card for retry
+      if (contentType === 'mistake' && !isCorrect) {
         setShowAnswer(false);
         return;
       }
 
+      // Move to next card (or finish)
       if (currentIndex < mistakes.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
-        alert(`Review completed! You reviewed ${mistakes.length} mistakes.`);
+        const itemLabel = mistakes.length === 1 ? 'item' : 'items';
+        alert(`Review completed! You reviewed ${mistakes.length} ${itemLabel}.`);
         router.push('/');
       }
     } catch (error) {
@@ -234,63 +242,27 @@ export default function ReviewPage() {
           </div>
         </div>
 
-        {/* Flashcard */}
+        {/* Flashcard - render different components based on content type */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6 min-h-[300px] flex flex-col justify-center">
-          {!showAnswer ? (
-            <div className="text-center">
-              {/* v2.0: 根据content_type显示不同的提示 */}
-              <div className="text-4xl mb-2">{config.icon}</div>
-              <h2 className="text-lg font-semibold text-gray-600 mb-4">{config.reviewPrompt}</h2>
-              <p className="text-2xl text-gray-800 leading-relaxed">
-                {currentMistake.error_sentence}
-              </p>
-              <div className="mt-8">
-                <button
-                  onClick={() => setShowAnswer(true)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Show Answer
-                </button>
-              </div>
-            </div>
+          {config.label === 'Expression' ? (
+            <ExpressionCard
+              originalExpression={currentMistake.error_sentence}
+              improvedExpression={currentMistake.correct_sentence}
+              explanation={currentMistake.explanation}
+              showAnswer={showAnswer}
+              onShowAnswer={() => setShowAnswer(true)}
+              onAcknowledge={() => handleReviewResponse(true)}
+            />
           ) : (
-            <div className="text-center">
-              {/* v2.0: 根据content_type显示不同的答案提示 */}
-              <div className="text-4xl mb-2">✅</div>
-              <h2 className="text-lg font-semibold text-green-600 mb-4">{config.answerPrompt}</h2>
-              <p className="text-2xl text-gray-800 leading-relaxed mb-6">
-                {currentMistake.correct_sentence}
-              </p>
-
-              {currentMistake.explanation && (
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
-                  <p className="text-gray-700">
-                    <strong className="text-blue-800">Explanation:</strong> {currentMistake.explanation}
-                  </p>
-                </div>
-              )}
-
-              <div className="text-sm text-gray-500 mb-6">
-                <span className="bg-gray-100 px-3 py-1 rounded-full">
-                  {config.icon} {config.label}
-                </span>
-              </div>
-
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={() => handleReviewResponse(false)}
-                  className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  🔄 Need More Practice
-                </button>
-                <button
-                  onClick={() => handleReviewResponse(true)}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  ✅ Got It!
-                </button>
-              </div>
-            </div>
+            <MistakeCard
+              errorSentence={currentMistake.error_sentence}
+              correctSentence={currentMistake.correct_sentence}
+              explanation={currentMistake.explanation}
+              showAnswer={showAnswer}
+              onShowAnswer={() => setShowAnswer(true)}
+              onCorrect={() => handleReviewResponse(true)}
+              onIncorrect={() => handleReviewResponse(false)}
+            />
           )}
         </div>
       </div>

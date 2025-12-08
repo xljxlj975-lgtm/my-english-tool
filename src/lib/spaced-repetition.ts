@@ -1,8 +1,21 @@
 import { format, addDays } from 'date-fns';
 
-export const REVIEW_STAGES = [0, 3, 7, 14, 30]; // Days from creation
+// Mistake SRS: Error correction system [1, 3, 7, 14, 30]
+export const MISTAKE_REVIEW_STAGES = [1, 3, 7, 14, 30];
 
-export function calculateNextReviewDate(
+// Expression SRS: Expression upgrade system [1, 7, 21]
+export const EXPRESSION_REVIEW_STAGES = [1, 7, 21];
+
+// Legacy support
+export const REVIEW_STAGES = MISTAKE_REVIEW_STAGES;
+
+/**
+ * Calculate next review date for mistakes (error correction)
+ * - If correct: move to next stage
+ * - If incorrect: reset to stage 0
+ * - Stages: [1, 3, 7, 14, 30] days
+ */
+export function calculateMistakeNextReviewDate(
   currentStage: number,
   isCorrect: boolean,
   lastReviewedAt: Date | null,
@@ -11,22 +24,47 @@ export function calculateNextReviewDate(
   let newStage = currentStage;
 
   if (isCorrect) {
-    // Move to next stage if correct
-    newStage = Math.min(currentStage + 1, REVIEW_STAGES.length - 1);
+    newStage = Math.min(currentStage + 1, MISTAKE_REVIEW_STAGES.length - 1);
   } else {
-    // Reset to beginning if incorrect
     newStage = 0;
   }
 
-  const daysToAdd = REVIEW_STAGES[newStage];
-
-  // v2.0 核心修复: 基于实际复习时间计算，而非创建时间
-  // 如果从未复习过(lastReviewedAt为null)，则使用createdAt作为基准
-  // 这确保了向后兼容性，同时修复了"自动推进"的bug
+  const daysToAdd = MISTAKE_REVIEW_STAGES[newStage];
   const baseDate = lastReviewedAt || createdAt;
   const nextReviewAt = addDays(baseDate, daysToAdd);
 
   return { nextReviewAt, newStage };
+}
+
+/**
+ * Calculate next review date for expressions (expression upgrade)
+ * - Always moves to next stage (no error marking)
+ * - Stages: [1, 7, 21] days
+ */
+export function calculateExpressionNextReviewDate(
+  currentStage: number,
+  lastReviewedAt: Date | null,
+  createdAt: Date
+): { nextReviewAt: Date; newStage: number } {
+  const newStage = Math.min(currentStage + 1, EXPRESSION_REVIEW_STAGES.length - 1);
+  const daysToAdd = EXPRESSION_REVIEW_STAGES[newStage];
+  const baseDate = lastReviewedAt || createdAt;
+  const nextReviewAt = addDays(baseDate, daysToAdd);
+
+  return { nextReviewAt, newStage };
+}
+
+/**
+ * Legacy function for backward compatibility
+ * Defaults to mistake SRS logic
+ */
+export function calculateNextReviewDate(
+  currentStage: number,
+  isCorrect: boolean,
+  lastReviewedAt: Date | null,
+  createdAt: Date
+): { nextReviewAt: Date; newStage: number } {
+  return calculateMistakeNextReviewDate(currentStage, isCorrect, lastReviewedAt, createdAt);
 }
 
 export function getTodayReviewDate(): string {
