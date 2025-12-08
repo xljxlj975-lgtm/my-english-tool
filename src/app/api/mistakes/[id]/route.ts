@@ -55,7 +55,7 @@ export async function PUT(
     let newStatus: string;
 
     if (actualContentType === 'expression') {
-      // Expression: Always advances, no error marking
+      // Expression: Always advances, no error marking, no decay
       const result = calculateExpressionNextReviewDate(
         mistake.review_stage,
         lastReviewedAt,
@@ -66,12 +66,14 @@ export async function PUT(
       // Expression is "learned" when it reaches the final stage
       newStatus = newStage === EXPRESSION_REVIEW_STAGES.length - 1 ? 'learned' : 'unlearned';
     } else {
-      // Mistake: Traditional error correction with correct/incorrect
+      // Mistake: Error correction with correct/incorrect + decay for overdue items
+      const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
       const result = calculateMistakeNextReviewDate(
         mistake.review_stage,
         isCorrect,
         lastReviewedAt,
-        createdAt
+        createdAt,
+        scheduledReviewAt  // Pass scheduled date for decay calculation
       );
       nextReviewAt = result.nextReviewAt;
       newStage = result.newStage;
