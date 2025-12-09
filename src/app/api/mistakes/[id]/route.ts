@@ -122,6 +122,44 @@ export async function PUT(
   }
 }
 
+// PATCH /api/mistakes/[id] - Retire item (mark as learned without SRS)
+export async function PATCH(
+  request: NextRequest,
+  { params }: RouteContext
+) {
+  try {
+    const supabase = getSupabaseClient();
+    const { id } = await params;
+    const body = await request.json();
+
+    // Only allow retiring items (status: "learned" with next_review_at: null)
+    if (body.status === 'learned' && body.next_review_at === null) {
+      const { error: updateError } = await supabase
+        .from('mistakes')
+        .update({
+          status: 'learned',
+          next_review_at: null,
+        })
+        .eq('id', id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      return NextResponse.json({
+        message: 'Item retired successfully',
+        status: 'learned',
+        next_review_at: null,
+      });
+    }
+
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  } catch (error) {
+    console.error('Error retiring item:', error);
+    return NextResponse.json({ error: 'Failed to retire item' }, { status: 500 });
+  }
+}
+
 // DELETE /api/mistakes/[id] - Delete mistake
 export async function DELETE(
   request: NextRequest,

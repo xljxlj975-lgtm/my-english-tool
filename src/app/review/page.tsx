@@ -104,6 +104,42 @@ export default function ReviewPage() {
     }
   };
 
+  const handleRetire = async () => {
+    if (currentIndex >= mistakes.length) return;
+
+    const currentMistake = mistakes[currentIndex];
+
+    try {
+      const response = await fetch(`/api/mistakes/${currentMistake.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'learned',
+          next_review_at: null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to retire item');
+      }
+
+      // Move to next card (or finish)
+      if (currentIndex < mistakes.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setShowAnswer(false);
+      } else {
+        const itemLabel = mistakes.length === 1 ? 'item' : 'items';
+        alert(`Review completed! You reviewed ${mistakes.length} ${itemLabel}.`);
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Error retiring item:', error);
+      alert('Error retiring item. Please try again.');
+    }
+  };
+
   const startReview = () => {
     if (mistakes.length === 0) {
       alert('No mistakes to review today!');
@@ -252,6 +288,7 @@ export default function ReviewPage() {
               showAnswer={showAnswer}
               onShowAnswer={() => setShowAnswer(true)}
               onAcknowledge={() => handleReviewResponse(true)}
+              onRetire={handleRetire}
             />
           ) : (
             <MistakeCard
@@ -262,6 +299,7 @@ export default function ReviewPage() {
               onShowAnswer={() => setShowAnswer(true)}
               onCorrect={() => handleReviewResponse(true)}
               onIncorrect={() => handleReviewResponse(false)}
+              onRetire={handleRetire}
             />
           )}
         </div>

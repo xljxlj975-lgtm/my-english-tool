@@ -5,6 +5,7 @@ interface ExpressionCardProps {
   showAnswer: boolean;
   onShowAnswer: () => void;
   onAcknowledge: () => void;
+  onRetire: () => void;
 }
 
 export default function ExpressionCard({
@@ -14,6 +15,7 @@ export default function ExpressionCard({
   showAnswer,
   onShowAnswer,
   onAcknowledge,
+  onRetire,
 }: ExpressionCardProps) {
   if (!showAnswer) {
     return (
@@ -65,6 +67,19 @@ export default function ExpressionCard({
           className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium"
         >
           Got It! Next
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <button
+          onClick={() => {
+            if (window.confirm('确定不再复习这条内容吗？')) {
+              onRetire();
+            }
+          }}
+          className="text-gray-500 text-sm px-4 py-2 rounded hover:bg-gray-100 transition-colors"
+        >
+          不再复习
         </button>
       </div>
     </div>

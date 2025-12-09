@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    let query = supabase.from('mistakes').select('*');
+    let query = supabase.from('mistakes').select('*').neq('status', 'learned');
 
     if (mode === 'backlog') {
       // Backlog: All items with next_review_at < today

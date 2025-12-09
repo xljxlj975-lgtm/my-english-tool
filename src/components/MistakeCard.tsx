@@ -6,6 +6,7 @@ interface MistakeCardProps {
   onShowAnswer: () => void;
   onCorrect: () => void;
   onIncorrect: () => void;
+  onRetire: () => void;
 }
 
 export default function MistakeCard({
@@ -16,6 +17,7 @@ export default function MistakeCard({
   onShowAnswer,
   onCorrect,
   onIncorrect,
+  onRetire,
 }: MistakeCardProps) {
   if (!showAnswer) {
     return (
@@ -73,6 +75,19 @@ export default function MistakeCard({
           className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
         >
           Got It!
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <button
+          onClick={() => {
+            if (window.confirm('确定不再复习这条内容吗？')) {
+              onRetire();
+            }
+          }}
+          className="text-gray-500 text-sm px-4 py-2 rounded hover:bg-gray-100 transition-colors"
+        >
+          不再复习
         </button>
       </div>
     </div>
