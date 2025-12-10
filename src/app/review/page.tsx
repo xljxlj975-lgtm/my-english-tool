@@ -149,6 +149,32 @@ export default function ReviewPage() {
     setShowAnswer(false);
   };
 
+  const goToPrevious = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+      setShowAnswer(false);
+    }
+  }, [currentIndex]);
+
+  const goToNext = useCallback(() => {
+    if (currentIndex < mistakes.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setShowAnswer(false);
+    }
+  }, [currentIndex, mistakes.length]);
+
+  useEffect(() => {
+    if (!reviewing) return;
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") goToPrevious();
+      if (e.key === "ArrowRight") goToNext();
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [reviewing, goToPrevious, goToNext]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
