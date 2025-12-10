@@ -7,7 +7,7 @@ export interface Mistake {
   correct_sentence: string;
   explanation: string | null;
   status: 'unlearned' | 'learned';
-  next_review_at: string;
+  next_review_at: string; // Note: Uses '9999-12-31T00:00:00.000Z' for retired items
   review_stage: number;
   review_count: number;
   content_type?: 'mistake' | 'expression'; // v2.0: 区分错误和表达优化

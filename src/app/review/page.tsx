@@ -116,8 +116,7 @@ export default function ReviewPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          status: 'learned',
-          next_review_at: null,
+          retire: true,
         }),
       });
 

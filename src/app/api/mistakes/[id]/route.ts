@@ -132,13 +132,17 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    // Only allow retiring items (status: "learned" with next_review_at: null)
-    if (body.status === 'learned' && body.next_review_at === null) {
+    // Only allow retiring items (set to "learned" with far-future date to exclude from reviews)
+    if (body.retire === true) {
+      // Use a far-future date (9999-12-31) instead of null to mark as retired
+      // This works with the NOT NULL constraint on next_review_at
+      const retiredDate = '9999-12-31T00:00:00.000Z';
+
       const { error: updateError } = await supabase
         .from('mistakes')
         .update({
           status: 'learned',
-          next_review_at: null,
+          next_review_at: retiredDate,
         })
         .eq('id', id);
 
@@ -149,7 +153,7 @@ export async function PATCH(
       return NextResponse.json({
         message: 'Item retired successfully',
         status: 'learned',
-        next_review_at: null,
+        next_review_at: retiredDate,
       });
     }
 
