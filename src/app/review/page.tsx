@@ -149,31 +149,56 @@ export default function ReviewPage() {
     setShowAnswer(false);
   };
 
+  // Keyboard navigation for two-page flow
+  const goToShowAnswer = useCallback(() => {
+    setShowAnswer(true);
+  }, []);
+
   const goToPrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+    if (showAnswer) {
       setShowAnswer(false);
     }
-  }, [currentIndex]);
+  }, [showAnswer]);
 
   const goToNext = useCallback(() => {
-    if (currentIndex < mistakes.length - 1) {
+    if (showAnswer && currentIndex < mistakes.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setShowAnswer(false);
     }
-  }, [currentIndex, mistakes.length]);
+  }, [showAnswer, currentIndex, mistakes.length]);
 
   useEffect(() => {
     if (!reviewing) return;
 
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") goToPrevious();
-      if (e.key === "ArrowRight") goToNext();
+      // Don't interfere with input fields
+      if (document.activeElement instanceof HTMLInputElement ||
+          document.activeElement instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // PAGE 1 (no answer shown)
+      if (!showAnswer) {
+        if (e.key === "ArrowRight") {
+          goToShowAnswer();
+        }
+        return;
+      }
+
+      // PAGE 2 (answer shown)
+      if (showAnswer) {
+        if (e.key === "ArrowLeft") {
+          goToPrevious();
+        }
+        if (e.key === "ArrowRight") {
+          goToNext();
+        }
+      }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [reviewing, goToPrevious, goToNext]);
+  }, [reviewing, showAnswer, goToShowAnswer, goToPrevious, goToNext]);
 
   if (loading) {
     return (
