@@ -29,19 +29,19 @@ export default function ReviewPage() {
     try {
       setLoading(true);
       setErrorMessage(null);
-      const response = await fetch('/api/mistakes?todayReview=true');
+      const response = await fetch('/api/review-queue?mode=today');
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
         const message =
           payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
             ? payload.error
-            : 'Failed to fetch today\'s mistakes';
+            : 'Failed to fetch review queue';
         throw new Error(message);
       }
 
       if (!Array.isArray(payload)) {
-        throw new Error('Unexpected response format from /api/mistakes');
+        throw new Error('Unexpected response format from review queue');
       }
 
       setMistakes(payload);
@@ -49,9 +49,9 @@ export default function ReviewPage() {
       setCurrentIndex(0);
       setShowAnswer(false);
     } catch (error) {
-      console.error("Error fetching today's mistakes:", error);
+      console.error("Error fetching review queue:", error);
       setMistakes([]);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to fetch today's mistakes");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to fetch review queue");
     } finally {
       setLoading(false);
     }
@@ -141,7 +141,7 @@ export default function ReviewPage() {
 
   const startReview = () => {
     if (mistakes.length === 0) {
-      alert('No mistakes to review today!');
+      alert('No items to review today!');
       return;
     }
     setReviewing(true);
@@ -231,7 +231,7 @@ export default function ReviewPage() {
                 Ready to Review?
               </h2>
               <p className="text-gray-600 text-lg">
-                You have {mistakes.length} mistakes to review today.
+                You have {mistakes.length} {mistakes.length === 1 ? 'item' : 'items'} to review today.
               </p>
             </div>
 
@@ -241,7 +241,7 @@ export default function ReviewPage() {
                 disabled={mistakes.length === 0}
                 className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium text-lg"
               >
-                {mistakes.length === 0 ? 'No Mistakes Today' : 'Start Review'}
+                {mistakes.length === 0 ? 'Nothing to Review Today' : 'Start Review'}
               </button>
 
               {mistakes.length === 0 && (
@@ -249,7 +249,7 @@ export default function ReviewPage() {
                   href="/add"
                   className="block text-blue-600 hover:text-blue-800"
                 >
-                  Add some mistakes to get started
+                  Add some items to get started
                 </Link>
               )}
 
@@ -274,9 +274,9 @@ export default function ReviewPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">No mistakes to review</h2>
+          <h2 className="text-xl font-semibold text-gray-900">No items to review</h2>
           <p className="text-gray-600">
-            Try refreshing the list or adding new mistakes before starting a session.
+            Try refreshing the list or adding new items before starting a session.
           </p>
           <div className="space-x-2">
             <button
@@ -289,7 +289,7 @@ export default function ReviewPage() {
               href="/add"
               className="inline-block bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
             >
-              Add Mistake
+              Add Item
             </Link>
           </div>
         </div>
