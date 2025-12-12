@@ -69,27 +69,35 @@ export async function PUT(
         : 'unlearned';
     } else {
       // Mistake: Error correction with correct/incorrect + decay for overdue items
+      // Infinite SRS: No auto-learning. Status calculated based on correctness.
       const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
+
       const result = calculateMistakeNextReviewDate(
         mistake.review_stage,
         isCorrect,
         lastReviewedAt,
         createdAt,
-        scheduledReviewAt  // Pass scheduled date for decay calculation
+        scheduledReviewAt,
+        id  // Pass ID for deterministic fuzzing
       );
+
       nextReviewAt = result.nextReviewAt;
       newStage = result.newStage;
 
-      // Mistake learned status logic (backward compatible):
-      // - If incorrect: always unlearned
-      // - If correct AND (reaches final stage OR already learned): learned
-      // - Otherwise: unlearned
+      // Mistake learned status logic:
+      // - If incorrect: re-activates (unlearned)
+      // - if correct: maintains current status (unless user explicitly retired it)
+      // - BUT: The user requirement is "Remove logic that automatically sets status to learned".
+      // - So we ONLY switch to 'unlearned' if it was learned and got incorrect?
+      // - Users might filter "status=learned" out of queue. If they practice it and get it wrong, it should probably return to unlearned.
+
       if (!isCorrect) {
-        newStatus = 'unlearned';
-      } else if (newStage === MISTAKE_REVIEW_STAGES.length - 1 || mistake.status === 'learned') {
-        newStatus = 'learned';
+        newStatus = 'unlearned'; // Reactivate if wrong
       } else {
-        newStatus = 'unlearned';
+        // If correct, keep existing status. 
+        // If it was 'unlearned', it stays 'unlearned' (infinite loop).
+        // If it was 'learned' (retired), it stays 'learned'.
+        newStatus = mistake.status;
       }
     }
 
