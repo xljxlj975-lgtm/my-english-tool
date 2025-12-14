@@ -61,7 +61,8 @@ export default function ReviewPage() {
     fetchTodayMistakes();
   }, [fetchTodayMistakes]);
 
-  const handleReviewResponse = async (isCorrect: boolean) => {
+  // v3.0: Handle 4-level scoring
+  const handleReviewResponse = async (score: 0 | 1 | 2 | 3) => {
     if (currentIndex >= mistakes.length) return;
 
     const currentMistake = mistakes[currentIndex];
@@ -74,8 +75,8 @@ export default function ReviewPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          isCorrect,
-          contentType // Pass content type to API for proper SRS logic
+          score,           // v3.0: 4-level score
+          contentType
         }),
       });
 
@@ -83,11 +84,8 @@ export default function ReviewPage() {
         throw new Error('Failed to update mistake');
       }
 
-      // For mistakes: if incorrect, stay on the same card for retry
-      if (contentType === 'mistake' && !isCorrect) {
-        setShowAnswer(false);
-        return;
-      }
+      // Note: 不再需要"stay on card for retry"逻辑
+      // 当日重现会通过reappear机制处理
 
       // Move to next card (or finish)
       if (currentIndex < mistakes.length - 1) {
@@ -337,7 +335,7 @@ export default function ReviewPage() {
               explanation={currentMistake.explanation}
               showAnswer={showAnswer}
               onShowAnswer={() => setShowAnswer(true)}
-              onAcknowledge={() => handleReviewResponse(true)}
+              onScore={handleReviewResponse}
               onRetire={handleRetire}
             />
           ) : (
@@ -347,8 +345,7 @@ export default function ReviewPage() {
               explanation={currentMistake.explanation}
               showAnswer={showAnswer}
               onShowAnswer={() => setShowAnswer(true)}
-              onCorrect={() => handleReviewResponse(true)}
-              onIncorrect={() => handleReviewResponse(false)}
+              onScore={handleReviewResponse}
               onRetire={handleRetire}
             />
           )}

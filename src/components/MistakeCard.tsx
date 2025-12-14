@@ -6,9 +6,11 @@ interface MistakeCardProps {
   explanation?: string;
   showAnswer: boolean;
   onShowAnswer: () => void;
-  onCorrect: () => void;
-  onIncorrect: () => void;
+  onScore: (score: 0 | 1 | 2 | 3) => void;  // v3.0: 4-level scoring
   onRetire: () => void;
+  // Legacy support
+  onCorrect?: () => void;
+  onIncorrect?: () => void;
 }
 
 export default function MistakeCard({
@@ -91,18 +93,41 @@ export default function MistakeCard({
         </span>
       </div>
 
-      <div className="flex justify-center space-x-4">
+      <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={onIncorrect}
-          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
+          onClick={() => onScore(0)}
+          className="bg-red-600 text-white px-4 py-4 rounded-lg hover:bg-red-700 transition-colors flex flex-col items-center"
         >
-          Need More Practice
+          <div className="text-2xl mb-1">😰</div>
+          <div className="font-semibold text-sm">完全忘了</div>
+          <div className="text-xs opacity-80">Forgot</div>
         </button>
+
         <button
-          onClick={onCorrect}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+          onClick={() => onScore(1)}
+          className="bg-orange-500 text-white px-4 py-4 rounded-lg hover:bg-orange-600 transition-colors flex flex-col items-center"
         >
-          Got It!
+          <div className="text-2xl mb-1">🤔</div>
+          <div className="font-semibold text-sm">勉强想起</div>
+          <div className="text-xs opacity-80">Hard</div>
+        </button>
+
+        <button
+          onClick={() => onScore(2)}
+          className="bg-green-600 text-white px-4 py-4 rounded-lg hover:bg-green-700 transition-colors flex flex-col items-center"
+        >
+          <div className="text-2xl mb-1">✅</div>
+          <div className="font-semibold text-sm">熟练</div>
+          <div className="text-xs opacity-80">Good</div>
+        </button>
+
+        <button
+          onClick={() => onScore(3)}
+          className="bg-blue-600 text-white px-4 py-4 rounded-lg hover:bg-blue-700 transition-colors flex flex-col items-center"
+        >
+          <div className="text-2xl mb-1">🚀</div>
+          <div className="font-semibold text-sm">非常熟练</div>
+          <div className="text-xs opacity-80">Perfect</div>
         </button>
       </div>
 

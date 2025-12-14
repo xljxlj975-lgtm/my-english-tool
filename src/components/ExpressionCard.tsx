@@ -6,8 +6,10 @@ interface ExpressionCardProps {
   explanation?: string;
   showAnswer: boolean;
   onShowAnswer: () => void;
-  onAcknowledge: () => void;
+  onScore: (score: 0 | 1 | 2 | 3) => void;  // v3.0: 4-level scoring
   onRetire: () => void;
+  // Legacy support
+  onAcknowledge?: () => void;
 }
 
 export default function ExpressionCard({
@@ -88,12 +90,41 @@ export default function ExpressionCard({
         </span>
       </div>
 
-      <div className="flex justify-center">
+      <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={onAcknowledge}
-          className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          onClick={() => onScore(0)}
+          className="bg-red-600 text-white px-4 py-4 rounded-lg hover:bg-red-700 transition-colors flex flex-col items-center"
         >
-          Got It! Next
+          <div className="text-2xl mb-1">😰</div>
+          <div className="font-semibold text-sm">完全忘了</div>
+          <div className="text-xs opacity-80">Forgot</div>
+        </button>
+
+        <button
+          onClick={() => onScore(1)}
+          className="bg-orange-500 text-white px-4 py-4 rounded-lg hover:bg-orange-600 transition-colors flex flex-col items-center"
+        >
+          <div className="text-2xl mb-1">🤔</div>
+          <div className="font-semibold text-sm">勉强想起</div>
+          <div className="text-xs opacity-80">Hard</div>
+        </button>
+
+        <button
+          onClick={() => onScore(2)}
+          className="bg-green-600 text-white px-4 py-4 rounded-lg hover:bg-green-700 transition-colors flex flex-col items-center"
+        >
+          <div className="text-2xl mb-1">✅</div>
+          <div className="font-semibold text-sm">熟练</div>
+          <div className="text-xs opacity-80">Good</div>
+        </button>
+
+        <button
+          onClick={() => onScore(3)}
+          className="bg-blue-600 text-white px-4 py-4 rounded-lg hover:bg-blue-700 transition-colors flex flex-col items-center"
+        >
+          <div className="text-2xl mb-1">🚀</div>
+          <div className="font-semibold text-sm">非常熟练</div>
+          <div className="text-xs opacity-80">Perfect</div>
         </button>
       </div>
 

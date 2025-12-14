@@ -4,8 +4,11 @@ import {
   formatDateForDb,
   calculateMistakeNextReviewDate,
   calculateExpressionNextReviewDate,
+  calculateNextReview,
+  Score,
   MISTAKE_REVIEW_STAGES,
-  EXPRESSION_REVIEW_STAGES
+  EXPRESSION_REVIEW_STAGES,
+  getFutureReviewLoad
 } from '@/lib/spaced-repetition';
 import type { ContentType } from '@/lib/content-type';
 
@@ -21,11 +24,40 @@ export async function PUT(
   try {
     const supabase = getSupabaseClient();
     const { id } = await params;
-    const { isCorrect, contentType } = await request.json();
+    const body = await request.json();
 
-    if (typeof isCorrect !== 'boolean') {
-      return NextResponse.json({ error: 'isCorrect field is required and must be a boolean' }, { status: 400 });
+    // v3.0: Support both new 'score' and legacy 'isCorrect'
+    let score: Score;
+    let isReappearance = false;
+
+    if ('score' in body) {
+      // New v3.0 API: 4-level scoring
+      score = body.score as Score;
+      isReappearance = body.isReappearance || false;
+
+      if (![0, 1, 2, 3].includes(score)) {
+        return NextResponse.json(
+          { error: 'Invalid score. Must be 0, 1, 2, or 3.' },
+          { status: 400 }
+        );
+      }
+    } else if ('isCorrect' in body) {
+      // Legacy API: boolean isCorrect
+      if (typeof body.isCorrect !== 'boolean') {
+        return NextResponse.json(
+          { error: 'isCorrect field must be a boolean' },
+          { status: 400 }
+        );
+      }
+      score = body.isCorrect ? Score.Good : Score.Forgot;
+    } else {
+      return NextResponse.json(
+        { error: 'Either score (0-3) or isCorrect (boolean) is required' },
+        { status: 400 }
+      );
     }
+
+    const { contentType } = body;
 
     // Get current mistake data
     const { data: mistake, error: fetchError } = await supabase
@@ -44,72 +76,44 @@ export async function PUT(
 
     const createdAt = new Date(mistake.created_at);
     const lastReviewedAt = mistake.last_reviewed_at ? new Date(mistake.last_reviewed_at) : null;
+    const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
     const now = new Date();
 
     // Determine content type (from request or from mistake record)
     const actualContentType: ContentType = (contentType || mistake.content_type || 'mistake') as ContentType;
 
-    // Use different SRS logic based on content type
-    let nextReviewAt: Date;
-    let newStage: number;
-    let newStatus: string;
+    // v3.0: Use new calculateNextReview with 4-level scoring
+    const result = calculateNextReview({
+      currentStage: mistake.review_stage,
+      score,
+      lastReviewedAt,
+      nextReviewAt: scheduledReviewAt,
+      previousInterval: mistake.previous_interval || null,
+      consecutiveHardCount: mistake.consecutive_hard_count || 0,
+      cardId: id,
+      // Optional: 可以传入负载数据实现动态fuzzing
+      // reviewLoadMap: await getFutureReviewLoad(supabase, 14),
+    });
 
-    if (actualContentType === 'expression') {
-      // Expression: Always advances, no error marking, no decay
-      const result = calculateExpressionNextReviewDate(
-        mistake.review_stage,
-        lastReviewedAt,
-        createdAt
-      );
-      nextReviewAt = result.nextReviewAt;
-      newStage = result.newStage;
-      // Expression is "learned" when: reaches final stage OR already learned (backward compatible)
-      newStatus = (newStage === EXPRESSION_REVIEW_STAGES.length - 1 || mistake.status === 'learned')
-        ? 'learned'
-        : 'unlearned';
-    } else {
-      // Mistake: Error correction with correct/incorrect + decay for overdue items
-      // Infinite SRS: No auto-learning. Status calculated based on correctness.
-      const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
-
-      const result = calculateMistakeNextReviewDate(
-        mistake.review_stage,
-        isCorrect,
-        lastReviewedAt,
-        createdAt,
-        scheduledReviewAt,
-        id  // Pass ID for deterministic fuzzing
-      );
-
-      nextReviewAt = result.nextReviewAt;
-      newStage = result.newStage;
-
-      // Mistake learned status logic:
-      // - If incorrect: re-activates (unlearned)
-      // - if correct: maintains current status (unless user explicitly retired it)
-      // - BUT: The user requirement is "Remove logic that automatically sets status to learned".
-      // - So we ONLY switch to 'unlearned' if it was learned and got incorrect?
-      // - Users might filter "status=learned" out of queue. If they practice it and get it wrong, it should probably return to unlearned.
-
-      if (!isCorrect) {
-        newStatus = 'unlearned'; // Reactivate if wrong
-      } else {
-        // If correct, keep existing status. 
-        // If it was 'unlearned', it stays 'unlearned' (infinite loop).
-        // If it was 'learned' (retired), it stays 'learned'.
-        newStatus = mistake.status;
-      }
-    }
+    // Status logic: 始终保持unlearned，除非明确退休
+    const newStatus = mistake.status === 'learned' ? 'learned' : 'unlearned';
 
     // Update the mistake record
+    const reviewCountIncrement = isReappearance ? 0 : 1;
+
     const { error: updateError } = await supabase
       .from('mistakes')
       .update({
         status: newStatus,
-        next_review_at: formatDateForDb(nextReviewAt),
-        review_stage: newStage,
-        review_count: (mistake.review_count ?? 0) + 1,
+        next_review_at: formatDateForDb(result.nextReviewAt),
+        review_stage: result.newStage,
+        review_count: (mistake.review_count ?? 0) + reviewCountIncrement,
         last_reviewed_at: formatDateForDb(now),
+        last_score: score,
+        consecutive_hard_count: result.newConsecutiveHardCount,
+        health_check_at: result.healthCheckAt ? formatDateForDb(result.healthCheckAt) : null,
+        previous_interval: result.newPreviousInterval,
+        reappear_count: 0, // 重置重现计数
       })
       .eq('id', id);
 
@@ -118,11 +122,14 @@ export async function PUT(
     }
 
     return NextResponse.json({
-      message: 'Mistake updated successfully',
+      message: 'Review recorded successfully',
       newStatus,
-      nextReviewAt: formatDateForDb(nextReviewAt),
-      newStage,
-      contentType: actualContentType
+      nextReviewAt: formatDateForDb(result.nextReviewAt),
+      newStage: result.newStage,
+      healthCheckAt: result.healthCheckAt ? formatDateForDb(result.healthCheckAt) : null,
+      reappearInSession: result.reappearInSession,
+      consecutiveHardCount: result.newConsecutiveHardCount,
+      contentType: actualContentType,
     });
   } catch (error) {
     console.error('Error updating mistake:', error);

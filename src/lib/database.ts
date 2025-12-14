@@ -12,6 +12,13 @@ export interface Mistake {
   review_count: number;
   content_type?: 'mistake' | 'expression'; // v2.0: 区分错误和表达优化
   last_reviewed_at?: string | null; // v2.0: 记录实际复习时间
+
+  // v3.0: Enhanced SRS fields
+  last_score?: number | null;              // 最后评分 (0-3)
+  consecutive_hard_count?: number;         // 连续Hard次数
+  health_check_at?: string | null;         // 健康检查时间
+  previous_interval?: number | null;       // 上一次间隔天数
+  reappear_count?: number;                 // 当日重现次数
 }
 
 let cachedClient: SupabaseClient | null = null;
