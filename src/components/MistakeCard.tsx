@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface MistakeCardProps {
   errorSentence: string;
   correctSentence: string;
@@ -19,6 +21,8 @@ export default function MistakeCard({
   onIncorrect,
   onRetire,
 }: MistakeCardProps) {
+  const [showOriginal, setShowOriginal] = useState(false);
+
   if (!showAnswer) {
     return (
       <div className="text-center">
@@ -48,6 +52,30 @@ export default function MistakeCard({
       <p className="text-2xl text-gray-800 leading-relaxed mb-6">
         {correctSentence}
       </p>
+
+      {!showOriginal && (
+        <button
+          onClick={() => setShowOriginal(true)}
+          className="text-xs text-blue-500 underline mb-4 hover:text-blue-700 transition-colors"
+        >
+          显示原句
+        </button>
+      )}
+
+      {showOriginal && (
+        <div className="mb-4 text-left max-w-2xl mx-auto">
+          <div className="bg-gray-50 border-l-4 border-gray-300 p-4">
+            <div className="font-semibold text-sm text-gray-600 mb-2">原句：</div>
+            <div className="text-sm text-gray-700">{errorSentence}</div>
+          </div>
+          <button
+            onClick={() => setShowOriginal(false)}
+            className="text-xs text-blue-500 underline mt-2 hover:text-blue-700 transition-colors"
+          >
+            隐藏原句
+          </button>
+        </div>
+      )}
 
       {explanation && (
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
