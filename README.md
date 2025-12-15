@@ -1,11 +1,38 @@
 # English Mistake Review Tool
 
-**Version 2.0** - A web application designed to help English learners systematically review and master their common mistakes using spaced repetition learning.
+**Version 3.0** - A web application designed to help English learners systematically review and master their common mistakes using an enhanced spaced repetition system.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
+
+## 🎉 What's New in v3.0
+
+### 🎯 4-Level Scoring System
+- **😰 Forgot (0)**: Drop 3 stages, quick relearning
+- **🤔 Hard (1)**: Stay at level, 50% shorter interval
+- **✅ Good (2)**: Normal progression (+1 stage)
+- **🚀 Perfect (3)**: Skip levels, accelerated learning
+
+### 🔄 Progressive Stable Growth
+- **Basic stages**: 1→3→7→14→21→35→50→70→100→140 days
+- **Advanced stages**: Progressive growth capped at **120 days**
+- **No more**: "Review in several years" scenarios
+- **Infinite reviews**: Both Mistakes and Expressions support unlimited reviews
+
+### ⚖️ Dynamic Load Balancing
+- **Smart scheduling**: Queries future 14-day load before scheduling
+- **Auto-distribution**: Selects least loaded dates
+- **Batch-friendly**: New cards also distributed evenly
+- **Smooth daily load**: Fluctuation reduced from **42x to ±10%**
+
+### 📊 Intelligent Priority Scheduling
+- Priority = Score(40) + Overdue(30) + Stage(20) + ConsecutiveHard(10)
+- Difficult cards reviewed first
+- Well-learned cards have longer intervals
+
+---
 
 ## ✨ What's New in v2.0
 
