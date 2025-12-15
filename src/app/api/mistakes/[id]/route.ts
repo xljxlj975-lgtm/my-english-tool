@@ -83,6 +83,9 @@ export async function PUT(
     const actualContentType: ContentType = (contentType || mistake.content_type || 'mistake') as ContentType;
 
     // v3.0: Use new calculateNextReview with 4-level scoring
+    // 获取未来14天的复习负载（用于动态fuzzing）
+    const reviewLoadMap = await getFutureReviewLoad(supabase, 14);
+
     const result = calculateNextReview({
       currentStage: mistake.review_stage,
       score,
@@ -91,8 +94,7 @@ export async function PUT(
       previousInterval: mistake.previous_interval || null,
       consecutiveHardCount: mistake.consecutive_hard_count || 0,
       cardId: id,
-      // Optional: 可以传入负载数据实现动态fuzzing
-      // reviewLoadMap: await getFutureReviewLoad(supabase, 14),
+      reviewLoadMap, // 启用动态负载均衡
     });
 
     // Status logic: 始终保持unlearned，除非明确退休

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient, Mistake } from '@/lib/database';
-import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
+import {
+  formatDateForDb,
+  calculateNextReviewDate,
+  calculateNextReview,
+  Score,
+  getFutureReviewLoad
+} from '@/lib/spaced-repetition';
 
 // GET /api/mistakes - Get all mistakes with optional filters
 export async function GET(request: NextRequest) {
@@ -79,9 +85,21 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const id = crypto.randomUUID();
 
-    // Calculate initial review date (Day 0 - same day)
-    // v2.0: 首次创建时lastReviewedAt为null，使用createdAt作为基准
-    const { nextReviewAt } = calculateNextReviewDate(0, false, null, now);
+    // v3.0: 使用动态负载均衡计算首次复习时间
+    // 获取未来14天的复习负载
+    const reviewLoadMap = await getFutureReviewLoad(supabase, 14);
+
+    // 使用新的calculateNextReview（评分0表示新建，从stage 0开始）
+    const result = calculateNextReview({
+      currentStage: 0,
+      score: Score.Forgot, // 新卡片使用Forgot（会设置为1天后）
+      lastReviewedAt: null,
+      nextReviewAt: null,
+      previousInterval: null,
+      consecutiveHardCount: 0,
+      cardId: id,
+      reviewLoadMap, // 启用动态负载均衡，避免新卡扎堆
+    });
 
     const { error } = await supabase.from('mistakes').insert({
       id,
@@ -90,10 +108,16 @@ export async function POST(request: NextRequest) {
       explanation: explanation || null,
       content_type, // v2.0: 保存内容类型
       status: 'unlearned',
-      next_review_at: formatDateForDb(nextReviewAt),
-      review_stage: 0,
+      next_review_at: formatDateForDb(result.nextReviewAt),
+      review_stage: result.newStage,
       review_count: 0,
       last_reviewed_at: null, // v2.0: 初始为null表示未复习过
+      // v3.0: 初始化新字段
+      last_score: null,
+      consecutive_hard_count: 0,
+      previous_interval: result.newPreviousInterval,
+      health_check_at: null,
+      reappear_count: 0,
     });
 
     if (error) {

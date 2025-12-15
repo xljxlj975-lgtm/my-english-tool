@@ -190,16 +190,19 @@ export function calculateNextReview(
  * 策略：
  * 1. 如果没有负载数据，使用确定性静态fuzzing
  * 2. 如果有负载数据，选择负载最低的日期
+ * 3. 增加偏移惩罚，防止被推太远
+ * 4. 限制最大推迟/提前天数
  */
 function applyDynamicFuzzing(
   interval: number,
   cardId: string,
   reviewLoadMap?: Record<string, number>
 ): number {
-  // 计算模糊范围：至少3天，最多interval的20%，上限14天
+  // 计算模糊范围：至少3天，最多interval的20%，上限10天
+  // 调整上限从14天降到10天，避免推迟太远
   const fuzzyRange = Math.max(
     3,
-    Math.min(Math.floor(interval * 0.2), 14)
+    Math.min(Math.floor(interval * 0.2), 10)
   );
 
   // 如果没有负载数据，使用静态fuzzing
@@ -219,8 +222,13 @@ function applyDynamicFuzzing(
     const load = reviewLoadMap[dateKey] || 0;
 
     // 评分：负载越低越好，但也要考虑距离baseDate的偏移
-    // score = load + abs(offset) * 0.5
-    const score = load + Math.abs(offset) * 0.5;
+    // 增大偏移惩罚从0.5到1.0，避免偏移太远破坏记忆节奏
+    const offsetPenalty = Math.abs(offset) * 1.0;
+
+    // 对于间隔较短的卡片（<7天），偏移惩罚更大
+    const penaltyMultiplier = interval < 7 ? 1.5 : 1.0;
+
+    const score = load + offsetPenalty * penaltyMultiplier;
 
     candidates.push({ date: candidateDate, offset, score });
   }
@@ -228,6 +236,24 @@ function applyDynamicFuzzing(
   // 选择得分最低的日期
   candidates.sort((a, b) => a.score - b.score);
   const bestCandidate = candidates[0];
+
+  // 额外限制：不允许偏移超过间隔的25%或7天（取较小值）
+  const maxOffset = Math.min(
+    Math.ceil(interval * 0.25),
+    7
+  );
+
+  if (Math.abs(bestCandidate.offset) > maxOffset) {
+    // 如果最佳候选超出限制，选择限制范围内得分最低的
+    const limitedCandidates = candidates.filter(
+      c => Math.abs(c.offset) <= maxOffset
+    );
+    const limitedBest = limitedCandidates.length > 0
+      ? limitedCandidates[0]
+      : bestCandidate; // 降级到原best
+
+    return interval + limitedBest.offset;
+  }
 
   return interval + bestCandidate.offset;
 }
