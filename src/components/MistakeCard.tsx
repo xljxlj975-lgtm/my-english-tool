@@ -19,8 +19,7 @@ export default function MistakeCard({
   explanation,
   showAnswer,
   onShowAnswer,
-  onCorrect,
-  onIncorrect,
+  onScore,
   onRetire,
 }: MistakeCardProps) {
   const [showOriginal, setShowOriginal] = useState(false);

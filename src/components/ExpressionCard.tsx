@@ -18,7 +18,7 @@ export default function ExpressionCard({
   explanation,
   showAnswer,
   onShowAnswer,
-  onAcknowledge,
+  onScore,
   onRetire,
 }: ExpressionCardProps) {
   const [showOriginal, setShowOriginal] = useState(false);
