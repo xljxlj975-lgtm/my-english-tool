@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
           {/* Daily Target Options */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {[30, 50, 70, 100].map((target) => (
+            {[30, 50, 70, 100, 150, 200].map((target) => (
               <button
                 key={target}
                 onClick={() => setDailyTarget(target)}

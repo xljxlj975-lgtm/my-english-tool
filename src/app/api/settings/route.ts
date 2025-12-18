@@ -42,9 +42,9 @@ export async function PUT(request: NextRequest) {
     const { daily_target } = body;
 
     // Validate daily_target
-    if (![30, 50, 70, 100].includes(daily_target)) {
+    if (![30, 50, 70, 100, 150, 200].includes(daily_target)) {
       return NextResponse.json(
-        { error: 'daily_target must be one of: 30, 50, 70, 100' },
+        { error: 'daily_target must be one of: 30, 50, 70, 100, 150, 200' },
         { status: 400 }
       );
     }
