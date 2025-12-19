@@ -452,14 +452,14 @@ export async function getFutureReviewLoad(
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const { data } = await supabase
+    const { count } = await supabase
       .from('mistakes')
       .select('id', { count: 'exact', head: true })
       .neq('status', 'learned')
       .gte('next_review_at', formatDateForDb(startOfDay))
       .lt('next_review_at', formatDateForDb(endOfDay));
 
-    forecast[dateKey] = data?.length || 0;
+    forecast[dateKey] = count || 0;
   }
 
   return forecast;
