@@ -7,6 +7,7 @@ import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 import MistakeCard from '@/components/MistakeCard';
 import ExpressionCard from '@/components/ExpressionCard';
 import { useToast } from '@/components/ToastProvider';
+import { useSwipe } from '@/hooks/useSwipe';
 
 interface Mistake {
   id: string;
@@ -26,6 +27,7 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showRetireModal, setShowRetireModal] = useState(false);
 
   const fetchTodayMistakes = useCallback(async () => {
     try {
@@ -164,6 +166,26 @@ export default function ReviewPage() {
       setShowAnswer(false);
     }
   }, [showAnswer, currentIndex, mistakes.length]);
+
+  const swipeRef = useSwipe<HTMLDivElement>({
+    enabled: reviewing,
+    onSwipeLeft: () => {
+      if (!showAnswer) {
+        setShowAnswer(true);
+        return;
+      }
+
+      if (currentIndex < mistakes.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+        setShowAnswer(false);
+      }
+    },
+    onSwipeRight: () => {
+      if (showAnswer) {
+        setShowAnswer(false);
+      }
+    },
+  });
 
   useEffect(() => {
     if (!reviewing) return;
@@ -325,7 +347,10 @@ export default function ReviewPage() {
           </div>
         </div>
 
-        <div className="mb-28 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-200 md:mb-8 md:p-8">
+        <div
+          ref={swipeRef}
+          className="mb-28 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-200 md:mb-8 md:p-8"
+        >
           {config.label === 'Expression' ? (
             <ExpressionCard
               originalExpression={currentMistake.error_sentence}
@@ -354,6 +379,9 @@ export default function ReviewPage() {
               </button>
             ) : (
               <div className="space-y-3">
+                <div className="px-1 text-center text-xs text-slate-400">
+                  左滑查看下一条，右滑返回题面
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleReviewResponse(0)}
@@ -381,11 +409,7 @@ export default function ReviewPage() {
                   </button>
                 </div>
                 <button
-                  onClick={() => {
-                    if (window.confirm('确定不再复习这条内容吗？')) {
-                      handleRetire();
-                    }
-                  }}
+                  onClick={() => setShowRetireModal(true)}
                   className="w-full rounded-2xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200"
                 >
                   不再复习
@@ -394,6 +418,34 @@ export default function ReviewPage() {
             )}
           </div>
         </div>
+
+        {showRetireModal && (
+          <div className="fixed inset-0 z-50 flex items-end bg-slate-950/35 p-4 md:items-center md:justify-center">
+            <div className="w-full max-w-sm rounded-[1.75rem] bg-white p-5 shadow-2xl ring-1 ring-slate-200">
+              <h2 className="text-lg font-semibold text-slate-900">停止复习这条内容？</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                这会把当前内容标记为已掌握，并从后续复习里移除。
+              </p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowRetireModal(false)}
+                  className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => {
+                    setShowRetireModal(false);
+                    handleRetire();
+                  }}
+                  className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                >
+                  确认移除
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
