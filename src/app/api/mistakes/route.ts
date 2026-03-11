@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient, Mistake } from '@/lib/database';
 import {
   formatDateForDb,
-  calculateNextReviewDate,
   calculateNextReview,
   Score,
   getFutureReviewLoad
@@ -82,7 +81,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'content_type must be "mistake" or "expression"' }, { status: 400 });
     }
 
-    const now = new Date();
     const id = crypto.randomUUID();
 
     // v3.0: 使用动态负载均衡计算首次复习时间

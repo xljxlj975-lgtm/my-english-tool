@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/database';
 import {
   formatDateForDb,
-  calculateMistakeNextReviewDate,
-  calculateExpressionNextReviewDate,
   calculateNextReview,
   Score,
-  MISTAKE_REVIEW_STAGES,
-  EXPRESSION_REVIEW_STAGES,
   getFutureReviewLoad
 } from '@/lib/spaced-repetition';
 import type { ContentType } from '@/lib/content-type';
@@ -74,7 +70,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Mistake not found' }, { status: 404 });
     }
 
-    const createdAt = new Date(mistake.created_at);
     const lastReviewedAt = mistake.last_reviewed_at ? new Date(mistake.last_reviewed_at) : null;
     const scheduledReviewAt = mistake.next_review_at ? new Date(mistake.next_review_at) : null;
     const now = new Date();
@@ -141,7 +136,7 @@ export async function PUT(
 
 // PATCH /api/mistakes/[id] - Retire item (mark as learned without SRS)
 export async function PATCH(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: RouteContext
 ) {
   try {
@@ -183,7 +178,7 @@ export async function PATCH(
 
 // DELETE /api/mistakes/[id] - Delete mistake
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: RouteContext
 ) {
   try {

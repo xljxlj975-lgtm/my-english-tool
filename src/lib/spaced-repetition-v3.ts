@@ -1,3 +1,4 @@
+import { type SupabaseClient } from '@supabase/supabase-js';
 import { format, addDays, differenceInCalendarDays } from 'date-fns';
 
 /**
@@ -327,10 +328,12 @@ export function calculateMistakeNextReviewDate(
   currentStage: number,
   isCorrect: boolean,
   lastReviewedAt: Date | null,
-  createdAt: Date,
+  _createdAt: Date,
   nextReviewAt: Date | null = null,
   id: string = 'default'
 ): { nextReviewAt: Date; newStage: number } {
+  void _createdAt;
+
   // 将旧的isCorrect映射到新的Score系统
   const score = isCorrect ? Score.Good : Score.Forgot;
 
@@ -357,8 +360,10 @@ export function calculateMistakeNextReviewDate(
 export function calculateExpressionNextReviewDate(
   currentStage: number,
   lastReviewedAt: Date | null,
-  createdAt: Date
+  _createdAt: Date
 ): { nextReviewAt: Date; newStage: number } {
+  void _createdAt;
+
   const result = calculateNextReview({
     currentStage,
     score: Score.Good,
@@ -411,7 +416,7 @@ export function formatDateForDb(date: Date): string {
  * 这个函数需要访问数据库，所以在实际使用时需要传入supabase client
  */
 export async function getFutureReviewLoad(
-  supabase: any,
+  supabase: SupabaseClient,
   days: number = 14
 ): Promise<Record<string, number>> {
   const forecast: Record<string, number> = {};
