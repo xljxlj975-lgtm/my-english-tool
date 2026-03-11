@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/components/ToastProvider';
 
 export default function SettingsPage() {
-  const router = useRouter();
+  const { showToast } = useToast();
   const [dailyTarget, setDailyTarget] = useState(50);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,6 +52,7 @@ export default function SettingsPage() {
       }
 
       setSuccessMessage('Settings saved successfully!');
+      showToast('设置已保存。', 'success');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -70,22 +71,20 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
-            ← Back to Dashboard
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">设置</h1>
+          <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            返回首页
           </Link>
         </div>
 
-        {/* Settings Card */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Daily Review Target</h2>
-            <p className="text-gray-600 text-sm">
-              Set your daily review goal. Items beyond this limit will go to backlog.
+            <h2 className="mb-2 text-xl font-semibold text-slate-800">每日复习目标</h2>
+            <p className="text-sm text-slate-600">
+              超过这个数量的内容会进入积压，留到之后继续处理。
             </p>
           </div>
 
@@ -102,12 +101,12 @@ export default function SettingsPage() {
           )}
 
           {/* Daily Target Options */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {[30, 50, 70, 100, 150, 200].map((target) => (
               <button
                 key={target}
                 onClick={() => setDailyTarget(target)}
-                className={`p-4 rounded-lg border-2 transition-all ${
+                className={`rounded-2xl border-2 p-4 transition-all ${
                   dailyTarget === target
                     ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md'
                     : 'border-gray-300 hover:border-blue-400 hover:shadow'
@@ -123,20 +122,18 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium"
+            className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
           >
-            {saving ? 'Saving...' : 'Save Settings'}
+            {saving ? '保存中...' : '保存设置'}
           </button>
         </div>
 
-        {/* Info Card */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-          <h3 className="font-semibold text-blue-800 mb-2">How Daily Target Works</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Each day, up to {dailyTarget} items will be scheduled for review</li>
-            <li>• Items beyond your daily target go into the backlog</li>
-            <li>• You can clear backlog items separately when you have time</li>
-            <li>• This helps prevent review overload and maintains consistent learning</li>
+        <div className="rounded-3xl border border-blue-200 bg-blue-50 p-4">
+          <h3 className="mb-2 font-semibold text-blue-800">说明</h3>
+          <ul className="space-y-1 text-sm text-blue-700">
+            <li>• 每天最多安排 {dailyTarget} 条进入复习</li>
+            <li>• 超出的内容会留在积压里</li>
+            <li>• 目标小一点更容易长期坚持</li>
           </ul>
         </div>
       </div>

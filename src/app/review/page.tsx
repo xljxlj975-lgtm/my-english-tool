@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 import MistakeCard from '@/components/MistakeCard';
 import ExpressionCard from '@/components/ExpressionCard';
+import { useToast } from '@/components/ToastProvider';
 
 interface Mistake {
   id: string;
@@ -18,6 +19,7 @@ interface Mistake {
 
 export default function ReviewPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -62,7 +64,7 @@ export default function ReviewPage() {
   }, [fetchTodayMistakes]);
 
   // v3.0: Handle 4-level scoring
-  const handleReviewResponse = async (score: 0 | 1 | 2 | 3) => {
+  const handleReviewResponse = useCallback(async (score: 0 | 1 | 2 | 3) => {
     if (currentIndex >= mistakes.length) return;
 
     const currentMistake = mistakes[currentIndex];
@@ -92,17 +94,16 @@ export default function ReviewPage() {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
-        const itemLabel = mistakes.length === 1 ? 'item' : 'items';
-        alert(`Review completed! You reviewed ${mistakes.length} ${itemLabel}.`);
+        showToast(`复习完成，已处理 ${mistakes.length} 条内容。`, 'success');
         router.push('/');
       }
     } catch (error) {
       console.error('Error updating mistake:', error);
-      alert('Error updating mistake. Please try again.');
+      showToast('更新复习结果失败，请重试。', 'error');
     }
-  };
+  }, [currentIndex, mistakes, router, showToast]);
 
-  const handleRetire = async () => {
+  const handleRetire = useCallback(async () => {
     if (currentIndex >= mistakes.length) return;
 
     const currentMistake = mistakes[currentIndex];
@@ -127,19 +128,18 @@ export default function ReviewPage() {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
-        const itemLabel = mistakes.length === 1 ? 'item' : 'items';
-        alert(`Review completed! You reviewed ${mistakes.length} ${itemLabel}.`);
+        showToast(`复习完成，已处理 ${mistakes.length} 条内容。`, 'success');
         router.push('/');
       }
     } catch (error) {
       console.error('Error retiring item:', error);
-      alert('Error retiring item. Please try again.');
+      showToast('停止复习失败，请重试。', 'error');
     }
-  };
+  }, [currentIndex, mistakes, router, showToast]);
 
   const startReview = () => {
     if (mistakes.length === 0) {
-      alert('No items to review today!');
+      showToast('今天没有需要复习的内容。');
       return;
     }
     setReviewing(true);
@@ -209,27 +209,27 @@ export default function ReviewPage() {
   if (!reviewing) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Review Session</h1>
-            <Link href="/" className="text-blue-600 hover:text-blue-800">
-              ← Back to Dashboard
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">开始复习</h1>
+            <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+              返回首页
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200 md:p-8">
             {errorMessage && (
-              <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded mb-6">
+              <div className="mb-6 rounded-2xl border border-red-300 bg-red-100 px-4 py-3 text-red-700">
                 {errorMessage}
               </div>
             )}
             <div className="mb-6">
-              <div className="text-6xl mb-4">📚</div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                Ready to Review?
+              <div className="mb-4 text-5xl">📚</div>
+              <h2 className="mb-2 text-xl font-semibold text-slate-800 md:text-2xl">
+                准备开始
               </h2>
-              <p className="text-gray-600 text-lg">
-                You have {mistakes.length} {mistakes.length === 1 ? 'item' : 'items'} to review today.
+              <p className="text-base text-slate-600 md:text-lg">
+                今天有 {mistakes.length} 条内容等待复习。
               </p>
             </div>
 
@@ -237,25 +237,25 @@ export default function ReviewPage() {
               <button
                 onClick={startReview}
                 disabled={mistakes.length === 0}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium text-lg"
+                className="w-full rounded-2xl bg-blue-600 px-8 py-4 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400 md:w-auto md:text-lg"
               >
-                {mistakes.length === 0 ? 'Nothing to Review Today' : 'Start Review'}
+                {mistakes.length === 0 ? '今天没有待复习内容' : '开始复习'}
               </button>
 
               {mistakes.length === 0 && (
                 <Link
                   href="/add"
-                  className="block text-blue-600 hover:text-blue-800"
+                  className="block text-sm text-blue-600 hover:text-blue-800"
                 >
-                  Add some items to get started
+                  去添加一些内容
                 </Link>
               )}
 
               <button
                 onClick={fetchTodayMistakes}
-                className="block w-full mt-4 text-blue-600 hover:text-blue-800"
+                className="block w-full text-sm text-blue-600 hover:text-blue-800"
               >
-                Refresh list
+                刷新列表
               </button>
             </div>
           </div>
@@ -271,23 +271,23 @@ export default function ReviewPage() {
   if (!currentMistake) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">No items to review</h2>
-          <p className="text-gray-600">
-            Try refreshing the list or adding new items before starting a session.
+        <div className="max-w-md space-y-4 rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-xl font-semibold text-slate-900">没有可复习内容</h2>
+          <p className="text-slate-600">
+            可以先刷新列表，或者回去添加新内容。
           </p>
           <div className="space-x-2">
             <button
               onClick={fetchTodayMistakes}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="rounded-xl bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
             >
-              Refresh
+              刷新
             </button>
             <Link
               href="/add"
-              className="inline-block bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              className="inline-block rounded-xl bg-slate-100 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-200"
             >
-              Add Item
+              添加
             </Link>
           </div>
         </div>
@@ -298,45 +298,40 @@ export default function ReviewPage() {
   const progress = mistakes.length > 0 ? ((currentIndex + 1) / mistakes.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Review Session</h1>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
-            ← Exit
+    <div className="min-h-screen bg-slate-50 px-4 py-5 md:px-6 md:py-8">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-500">复习中</p>
+            <h1 className="text-xl font-bold text-slate-900 md:text-2xl">第 {currentIndex + 1} / {mistakes.length} 条</h1>
+          </div>
+          <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            退出
           </Link>
         </div>
 
-        {/* Progress Bar */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-600">
-              Progress: {currentIndex + 1} / {mistakes.length}
+        <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <div className="mb-2 flex justify-between text-sm font-medium text-slate-600">
+            <span>
+              进度 {currentIndex + 1} / {mistakes.length}
             </span>
-            <span className="text-sm font-medium text-gray-600">
-              {Math.round(progress)}%
-            </span>
+            <span>{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="h-2 w-full rounded-full bg-slate-200">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="h-2 rounded-full bg-blue-600 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        {/* Flashcard - render different components based on content type */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6 min-h-[300px] flex flex-col justify-center">
+        <div className="mb-28 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-200 md:mb-8 md:p-8">
           {config.label === 'Expression' ? (
             <ExpressionCard
               originalExpression={currentMistake.error_sentence}
               improvedExpression={currentMistake.correct_sentence}
               explanation={currentMistake.explanation}
               showAnswer={showAnswer}
-              onShowAnswer={() => setShowAnswer(true)}
-              onScore={handleReviewResponse}
-              onRetire={handleRetire}
             />
           ) : (
             <MistakeCard
@@ -344,11 +339,60 @@ export default function ReviewPage() {
               correctSentence={currentMistake.correct_sentence}
               explanation={currentMistake.explanation}
               showAnswer={showAnswer}
-              onShowAnswer={() => setShowAnswer(true)}
-              onScore={handleReviewResponse}
-              onRetire={handleRetire}
             />
           )}
+        </div>
+
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-40 px-4 md:static md:px-0">
+          <div className="mx-auto max-w-4xl rounded-[1.75rem] border border-slate-200 bg-white/98 p-3 shadow-lg backdrop-blur md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+            {!showAnswer ? (
+              <button
+                onClick={() => setShowAnswer(true)}
+                className="w-full rounded-2xl bg-blue-600 px-6 py-4 text-base font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                显示答案
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleReviewResponse(0)}
+                    className="rounded-2xl bg-red-600 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+                  >
+                    忘了
+                  </button>
+                  <button
+                    onClick={() => handleReviewResponse(1)}
+                    className="rounded-2xl bg-orange-500 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+                  >
+                    困难
+                  </button>
+                  <button
+                    onClick={() => handleReviewResponse(2)}
+                    className="rounded-2xl bg-emerald-600 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                  >
+                    还行
+                  </button>
+                  <button
+                    onClick={() => handleReviewResponse(3)}
+                    className="rounded-2xl bg-blue-600 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                  >
+                    很熟
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm('确定不再复习这条内容吗？')) {
+                      handleRetire();
+                    }
+                  }}
+                  className="w-full rounded-2xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200"
+                >
+                  不再复习
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -160,72 +160,71 @@ export default function CalendarPage() {
     calendarData.reviewCounts
   );
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Review Calendar</h1>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
-            ← Back to Dashboard
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">复习日历</h1>
+          <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            返回首页
           </Link>
         </div>
 
         {errorMessage && (
-          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6">
+          <div className="mb-6 rounded-2xl border border-yellow-300 bg-yellow-100 px-4 py-3 text-yellow-800">
             {errorMessage}
           </div>
         )}
 
-        {/* Calendar Navigation */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-2">
             <button
               onClick={goToPreviousMonth}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 md:px-4"
             >
-              ← Previous
+              <span className="md:hidden">←</span>
+              <span className="hidden md:inline">← Previous</span>
             </button>
 
             <div className="text-center">
-              <h2 className="text-2xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-slate-800 md:text-2xl">
                 {getMonthName(currentDate)}
               </h2>
               <button
                 onClick={goToToday}
-                className="text-sm text-blue-600 hover:text-blue-800 mt-1"
+                className="mt-1 text-sm text-blue-600 hover:text-blue-800"
               >
-                Go to Today
+                回到今天
               </button>
             </div>
 
             <button
               onClick={goToNextMonth}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 md:px-4"
             >
-              Next →
+              <span className="md:hidden">→</span>
+              <span className="hidden md:inline">Next →</span>
             </button>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2 mb-4">
+          <div className="mb-3 grid grid-cols-7 gap-1 md:mb-4 md:gap-2">
             {weekDays.map(day => (
-              <div key={day} className="text-center font-semibold text-gray-600 py-2">
+              <div key={day} className="py-2 text-center text-xs font-semibold text-slate-500 md:text-sm">
                 {day}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 md:gap-2">
             {calendarDays.map((day, index) => (
               <button
                 key={index}
                 onClick={() => handleDateClick(day)}
                 disabled={!day.hasReviews && !day.isToday}
                 className={`
-                  aspect-square p-2 rounded-lg border transition-colors
+                  aspect-square rounded-2xl border p-1.5 transition-colors md:p-2
                   ${
                     day.isToday
                       ? 'border-blue-500 bg-blue-50'
@@ -247,9 +246,9 @@ export default function CalendarPage() {
                   }
                 `}
               >
-                <div className="text-sm font-medium">{format(day.date, 'd')}</div>
+                <div className="text-xs font-medium md:text-sm">{format(day.date, 'd')}</div>
                 {day.hasReviews && (
-                  <div className="text-xs text-blue-600 font-semibold mt-1">
+                  <div className="mt-1 text-[11px] font-semibold text-blue-600 md:text-xs">
                     {day.reviewCount}
                   </div>
                 )}
@@ -258,16 +257,15 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Date Details Modal */}
         {showDateMistakes && selectedDate && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-800">
+          <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-slate-800 md:text-xl">
                 Reviews for {format(new Date(selectedDate), 'MMMM d, yyyy')}
               </h3>
               <button
                 onClick={() => setShowDateMistakes(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-500 hover:text-slate-700"
               >
                 ✕
               </button>
@@ -281,7 +279,7 @@ export default function CalendarPage() {
             ) : (
               <div className="space-y-4">
                 {calendarData.mistakesForDate.map((mistake, index) => (
-                  <div key={mistake.id} className="border border-gray-200 rounded-lg p-4">
+                  <div key={mistake.id} className="rounded-2xl border border-slate-200 p-4">
                     <div className="mb-3">
                       <span className="text-sm font-medium text-red-600 block mb-1">
                         Error ({index + 1}):
@@ -302,16 +300,14 @@ export default function CalendarPage() {
                         <p className="text-gray-700">{mistake.explanation}</p>
                       </div>
                     )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Status: {mistake.status}</span>
-                    </div>
+                    <div className="text-sm text-gray-500">Status: {mistake.status}</div>
                   </div>
                 ))}
 
                 <div className="flex justify-center pt-4">
                   <Link
                     href={`/review?date=${selectedDate}`}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="rounded-2xl bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700"
                   >
                     Review These Mistakes
                   </Link>
@@ -321,25 +317,24 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Calendar Stats */}
         {!showDateMistakes && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+            <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
+              <div className="mb-2 text-3xl font-bold text-blue-600">
                 {Object.values(calendarData.reviewCounts).reduce((sum, count) => sum + count, 0)}
               </div>
-              <div className="text-gray-600">Total Scheduled Reviews</div>
+              <div className="text-slate-600">总复习数</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
+              <div className="mb-2 text-3xl font-bold text-green-600">
                 {Object.keys(calendarData.reviewCounts).length}
               </div>
-              <div className="text-gray-600">Days with Reviews</div>
+              <div className="text-slate-600">有复习的天数</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+            <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
+              <div className="mb-2 text-3xl font-bold text-purple-600">
                 {Object.keys(calendarData.reviewCounts).length > 0
                   ? Math.round(
                       Object.values(calendarData.reviewCounts).reduce((sum, count) => sum + count, 0) /
@@ -347,7 +342,7 @@ export default function CalendarPage() {
                     )
                   : 0}
               </div>
-              <div className="text-gray-600">Average per Day</div>
+              <div className="text-slate-600">日均复习数</div>
             </div>
           </div>
         )}

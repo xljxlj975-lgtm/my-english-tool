@@ -4,10 +4,12 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
+import { useToast } from '@/components/ToastProvider';
 
 function AddMistakeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [mode, setMode] = useState<'single' | 'batch'>('single');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -102,7 +104,7 @@ function AddMistakeContent() {
 
       const result = await response.json();
       console.log('[批量添加] 成功:', result);
-      alert(`成功添加 ${result.count} 个错误记录！`);
+      showToast(`成功添加 ${result.count} 条记录。`, 'success');
       router.push('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '批量添加错误失败，请重试。';
@@ -114,37 +116,38 @@ function AddMistakeContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">添加内容</h1>
+          <Link href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            返回首页
+          </Link>
+        </div>
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">添加错误</h1>
-            <Link href="/" className="text-blue-600 hover:text-blue-800">
-              ← 返回首页
-            </Link>
-          </div>
+          <p className="text-sm text-slate-600">
+            先输入单条内容，批量导入留给桌面端或一次性整理时使用。
+          </p>
         </div>
 
-        {/* Mode Toggle */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex space-x-4 mb-6">
+        <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+          <div className="mb-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => setMode('single')}
-              className={`px-4 py-2 rounded-lg font-medium ${
+              className={`rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
                 mode === 'single'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               单个添加
             </button>
             <button
               onClick={() => setMode('batch')}
-              className={`px-4 py-2 rounded-lg font-medium ${
+              className={`rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
                 mode === 'batch'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               批量添加
@@ -152,56 +155,55 @@ function AddMistakeContent() {
           </div>
 
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="mb-4 rounded-2xl border border-red-400 bg-red-100 px-4 py-3 text-red-700">
               {error}
             </div>
           )}
 
           {mode === 'single' ? (
             <form onSubmit={handleSingleSubmit} className="space-y-6">
-              {/* v2.0: 内容类型选择器 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Content Type *
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  内容类型
                 </label>
-                <div className="flex space-x-4">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setContentType('mistake')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    className={`rounded-2xl border-2 px-4 py-3 transition-all ${
                       contentType === 'mistake'
                         ? 'border-red-500 bg-red-50 text-red-700'
-                        : 'border-gray-300 hover:border-red-300'
+                        : 'border-slate-300 hover:border-red-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">❌</div>
+                    <div className="mb-1 text-2xl">❌</div>
                     <div className="font-medium">Mistake</div>
-                    <div className="text-xs text-gray-500">Error correction</div>
+                    <div className="text-xs text-slate-500">Error correction</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setContentType('expression')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    className={`rounded-2xl border-2 px-4 py-3 transition-all ${
                       contentType === 'expression'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-blue-300'
+                        : 'border-slate-300 hover:border-blue-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">💡</div>
+                    <div className="mb-1 text-2xl">💡</div>
                     <div className="font-medium">Expression</div>
-                    <div className="text-xs text-gray-500">Improvement</div>
+                    <div className="text-xs text-slate-500">Improvement</div>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
                   {config.errorLabel} *
                 </label>
                 <textarea
                   value={errorSentence}
                   onChange={(e) => setErrorSentence(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   required
                   placeholder={config.placeholder.error}
@@ -209,13 +211,13 @@ function AddMistakeContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
                   {config.correctLabel} *
                 </label>
                 <textarea
                   value={correctSentence}
                   onChange={(e) => setCorrectSentence(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   required
                   placeholder={config.placeholder.correct}
@@ -223,89 +225,84 @@ function AddMistakeContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
                   Explanation
                 </label>
                 <textarea
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   placeholder={config.placeholder.explanation}
                 />
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium"
-                >
-                  {loading ? '添加中...' : '添加错误'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                {loading ? '添加中...' : '保存内容'}
+              </button>
             </form>
           ) : (
             <form onSubmit={handleBatchSubmit} className="space-y-6">
-              {/* v2.0: 内容类型选择器（批量模式） */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Content Type *
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  内容类型
                 </label>
-                <div className="flex space-x-4">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setContentType('mistake')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    className={`rounded-2xl border-2 px-4 py-3 transition-all ${
                       contentType === 'mistake'
                         ? 'border-red-500 bg-red-50 text-red-700'
-                        : 'border-gray-300 hover:border-red-300'
+                        : 'border-slate-300 hover:border-red-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">❌</div>
+                    <div className="mb-1 text-2xl">❌</div>
                     <div className="font-medium">Mistake</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setContentType('expression')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    className={`rounded-2xl border-2 px-4 py-3 transition-all ${
                       contentType === 'expression'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-blue-300'
+                        : 'border-slate-300 hover:border-blue-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">💡</div>
+                    <div className="mb-1 text-2xl">💡</div>
                     <div className="font-medium">Expression</div>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Batch Input
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  批量输入
                 </label>
-                <p className="text-sm text-gray-600 mb-2">
-                  Format: {config.errorLabel} | {config.correctLabel} | Explanation (optional)
+                <p className="mb-2 text-sm text-slate-600">
+                  格式：{config.errorLabel} | {config.correctLabel} | Explanation（可选）
                 </p>
                 <textarea
                   value={batchText}
                   onChange={(e) => setBatchText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={10}
                   required
                   placeholder="I have went to school | I have gone to school | 使用have时应该用过去分词&#10;He don't like it | He doesn't like it | 第三人称单数用doesn't"
                 />
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium"
-                >
-                  {loading ? '添加中...' : '批量添加'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                {loading ? '添加中...' : '批量保存'}
+              </button>
             </form>
           )}
         </div>

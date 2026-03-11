@@ -99,139 +99,146 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            English Mistake Review Tool
+    <div className="min-h-screen bg-slate-50 px-4 py-5 md:px-6 md:py-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 md:mb-8">
+          <p className="mb-2 text-sm font-medium text-blue-600">今日学习</p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-4xl">
+            先把今天该复习的内容清掉
           </h1>
-          <p className="text-gray-600">
-            Master your English mistakes with spaced repetition
+          <p className="mt-2 text-sm text-slate-600 md:text-base">
+            首页只保留最重要的信息，打开后能直接开始复习。
           </p>
         </div>
 
-        {/* Today's Review Card - v2.0: 显示Daily Target进度 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                Today&apos;s Review
+              <h2 className="mb-2 text-xl font-semibold text-slate-900 md:text-2xl">
+                今日复习
               </h2>
-              {/* v2.0: Daily Target进度 */}
               <div className="mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">
-                    Progress: {dashboardData.todayCompletedCount} / {dashboardData.dailyTarget}
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-600">
+                    已完成 {dashboardData.todayCompletedCount} / {dashboardData.dailyTarget}
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-slate-500">
                     {Math.round((dashboardData.todayCompletedCount / dashboardData.dailyTarget) * 100)}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="h-2 w-full rounded-full bg-slate-200">
                   <div
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                    className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
                     style={{ width: `${Math.min((dashboardData.todayCompletedCount / dashboardData.dailyTarget) * 100, 100)}%` }}
                   />
                 </div>
               </div>
-              {/* v2.0修复: 显示待复习数量，区分今日目标和总积压 */}
-              <p className="text-gray-600">
-                <span className="font-semibold text-blue-600">{dashboardData.todayReviewCount}</span> items to review today
+              <p className="text-sm text-slate-600 md:text-base">
+                今天还有 <span className="font-semibold text-blue-600">{dashboardData.todayReviewCount}</span> 条需要复习
               </p>
-              {/* v2.0修复: 更清晰的积压提示 */}
               {dashboardData.totalNeedsReview !== undefined && dashboardData.totalNeedsReview > dashboardData.dailyTarget && (
-                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
-                  <p className="text-orange-700 font-medium">
-                    📊 Total pending: {dashboardData.totalNeedsReview} items
+                <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm">
+                  <p className="font-medium text-orange-700">
+                    当前累计待复习 {dashboardData.totalNeedsReview} 条
                   </p>
-                  <p className="text-orange-600 text-xs mt-1">
-                    You have {dashboardData.totalNeedsReview - dashboardData.dailyTarget} items beyond today&apos;s target.
-                    Keep reviewing daily to clear the backlog!
+                  <p className="mt-1 text-xs text-orange-600">
+                    其中有 {dashboardData.totalNeedsReview - dashboardData.dailyTarget} 条超出今日目标，按天清理就行。
                   </p>
                 </div>
               )}
             </div>
-            <div className="flex flex-col space-y-2 ml-4">
+            <div className="w-full sm:ml-4 sm:w-auto">
               {dashboardData.todayReviewCount > 0 ? (
                 <Link
                   href="/review"
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center whitespace-nowrap"
+                  className="block rounded-2xl bg-blue-600 px-6 py-4 text-center text-base font-medium text-white transition-colors hover:bg-blue-700"
                 >
-                  Start Review ▶
+                  开始复习
                 </Link>
               ) : (
-                <div className="bg-green-100 text-green-700 px-6 py-3 rounded-lg font-medium text-center whitespace-nowrap">
-                  ✓ All Done!
+                <div className="rounded-2xl bg-emerald-100 px-6 py-4 text-center font-medium text-emerald-700">
+                  今日已完成
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Mistakes</h3>
-            <p className="text-3xl font-bold text-blue-600">{dashboardData.totalMistakes}</p>
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <h3 className="mb-2 text-sm font-semibold text-slate-600 md:text-base">总条目</h3>
+            <p className="text-2xl font-bold text-blue-600 md:text-3xl">{dashboardData.totalMistakes}</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Learned</h3>
-            <p className="text-3xl font-bold text-green-600">{dashboardData.learnedMistakes}</p>
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <h3 className="mb-2 text-sm font-semibold text-slate-600 md:text-base">已掌握</h3>
+            <p className="text-2xl font-bold text-emerald-600 md:text-3xl">{dashboardData.learnedMistakes}</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">In Progress</h3>
-            <p className="text-3xl font-bold text-orange-600">{dashboardData.unlearnedMistakes}</p>
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <h3 className="mb-2 text-sm font-semibold text-slate-600 md:text-base">进行中</h3>
+            <p className="text-2xl font-bold text-orange-600 md:text-3xl">{dashboardData.unlearnedMistakes}</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Streak</h3>
-            <p className="text-3xl font-bold text-purple-600">{dashboardData.streak} days</p>
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <h3 className="mb-2 text-sm font-semibold text-slate-600 md:text-base">连续天数</h3>
+            <p className="text-2xl font-bold text-violet-600 md:text-3xl">{dashboardData.streak} 天</p>
           </div>
         </div>
 
-        {/* Quick Actions - v2.0: 分离Mistake和Expression入口 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
           <Link
             href="/add?type=mistake"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">❌</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Add Mistake</h3>
-              <p className="text-gray-600 text-sm">Add error corrections</p>
+              <div className="mb-3 text-3xl md:text-4xl">❌</div>
+              <h3 className="mb-1 text-base font-semibold text-slate-800 md:text-lg">添加错误</h3>
+              <p className="text-xs text-slate-600 md:text-sm">记录需要纠正的句子</p>
             </div>
           </Link>
 
           <Link
             href="/add?type=expression"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">💡</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Add Expression</h3>
-              <p className="text-gray-600 text-sm">Add better expressions</p>
+              <div className="mb-3 text-3xl md:text-4xl">💡</div>
+              <h3 className="mb-1 text-base font-semibold text-slate-800 md:text-lg">添加表达</h3>
+              <p className="text-xs text-slate-600 md:text-sm">记录更自然的表达方式</p>
             </div>
           </Link>
 
           <Link
             href="/library"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Library</h3>
-              <p className="text-gray-600 text-sm">Browse and manage</p>
+              <div className="mb-3 text-3xl md:text-4xl">📚</div>
+              <h3 className="mb-1 text-base font-semibold text-slate-800 md:text-lg">题库</h3>
+              <p className="text-xs text-slate-600 md:text-sm">浏览并管理全部内容</p>
             </div>
           </Link>
 
           <Link
             href="/settings"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md"
           >
             <div className="text-center">
-              <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Settings</h3>
-              <p className="text-gray-600 text-sm">Daily target config</p>
+              <div className="mb-3 text-3xl md:text-4xl">⚙️</div>
+              <h3 className="mb-1 text-base font-semibold text-slate-800 md:text-lg">设置</h3>
+              <p className="text-xs text-slate-600 md:text-sm">调整每日复习目标</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/calendar"
+            className="col-span-2 rounded-3xl bg-slate-900 p-5 text-white shadow-sm md:col-span-4"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-slate-300">次级入口</p>
+                <h3 className="mt-1 text-lg font-semibold">查看复习日历</h3>
+                <p className="mt-1 text-sm text-slate-300">按日期看未来复习分布和当天安排。</p>
+              </div>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-sm">打开</span>
             </div>
           </Link>
         </div>
