@@ -136,7 +136,7 @@ export async function PUT(
 
 // PATCH /api/mistakes/[id] - Retire item (mark as learned without SRS)
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: RouteContext
 ) {
   try {
