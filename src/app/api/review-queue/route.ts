@@ -76,7 +76,17 @@ export async function GET(request: NextRequest) {
 
     if (mode === 'today') {
       const settings = await getSettings();
-      result = needsReview.slice(0, settings.daily_target);
+
+      // Query how many items were already reviewed today
+      const { count: todayCompletedCount } = await supabase
+        .from('mistakes')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_reviewed_at', formatDateForDb(today))
+        .lt('last_reviewed_at', formatDateForDb(tomorrow));
+
+      const completed = todayCompletedCount || 0;
+      const remaining = Math.max(0, settings.daily_target - completed);
+      result = needsReview.slice(0, remaining);
     } else if (mode === 'continue') {
       const limit = customLimit ? parseInt(customLimit) : 20;
       result = needsReview.slice(0, limit);
