@@ -16,6 +16,51 @@ interface Mistake {
   explanation?: string;
   status: string;
   content_type?: ContentType; // v2.0: 内容类型
+  next_review_at?: string;
+  review_stage?: number;
+  review_count?: number;
+  last_reviewed_at?: string | null;
+  last_score?: number | null;
+  previous_interval?: number | null;
+}
+
+const scoreLabels: Record<number, string> = {
+  0: '忘了',
+  1: '困难',
+  2: '还行',
+  3: '很熟',
+};
+
+function getStageInfo(stage = 0) {
+  if (stage <= 0) {
+    return { label: '初见', description: '刚开始建立记忆', tone: 'bg-slate-600' };
+  }
+
+  if (stage <= 2) {
+    return { label: '起步', description: '短间隔巩固中', tone: 'bg-sky-600' };
+  }
+
+  if (stage <= 5) {
+    return { label: '巩固', description: '记忆正在变稳定', tone: 'bg-emerald-600' };
+  }
+
+  if (stage <= 9) {
+    return { label: '稳定', description: '进入较长间隔', tone: 'bg-violet-600' };
+  }
+
+  return { label: '长期', description: '长期记忆维护', tone: 'bg-amber-600' };
+}
+
+function formatReviewDate(value?: string | null) {
+  if (!value) return '暂无';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '暂无';
+
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 }
 
 export default function ReviewPage() {
@@ -318,6 +363,15 @@ export default function ReviewPage() {
   }
 
   const progress = mistakes.length > 0 ? ((currentIndex + 1) / mistakes.length) * 100 : 0;
+  const stage = currentMistake.review_stage ?? 0;
+  const stageInfo = getStageInfo(stage);
+  const stageProgress = Math.min(100, Math.max(8, ((stage + 1) / 11) * 100));
+  const reviewCount = currentMistake.review_count ?? 0;
+  const previousInterval = currentMistake.previous_interval;
+  const lastScoreLabel =
+    typeof currentMistake.last_score === 'number'
+      ? scoreLabels[currentMistake.last_score] ?? '未知'
+      : '未评分';
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-5 md:px-6 md:py-8">
@@ -345,6 +399,50 @@ export default function ReviewPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
+        </div>
+
+        <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-white ${stageInfo.tone}`}>
+                {stage}
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-slate-900">{stageInfo.label}</p>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                    Stage {stage}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500">{stageInfo.description}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center sm:min-w-72">
+              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">已复习</p>
+                <p className="text-sm font-semibold text-slate-900">{reviewCount} 次</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">上次</p>
+                <p className="text-sm font-semibold text-slate-900">{lastScoreLabel}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">下次</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {formatReviewDate(currentMistake.next_review_at)}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="h-2 w-full rounded-full bg-slate-200">
+            <div
+              className={`h-2 rounded-full transition-all duration-300 ${stageInfo.tone}`}
+              style={{ width: `${stageProgress}%` }}
+            />
+          </div>
+          {typeof previousInterval === 'number' && previousInterval > 0 && (
+            <p className="mt-2 text-xs text-slate-500">当前记忆间隔约 {previousInterval} 天。</p>
+          )}
         </div>
 
         <div

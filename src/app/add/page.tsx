@@ -1,17 +1,18 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getContentTypeConfig, type ContentType } from '@/lib/content-type';
 import { useToast } from '@/components/ToastProvider';
 
 function AddMistakeContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
 
   // v2.0: 内容类型
   const [contentType, setContentType] = useState<ContentType>('mistake');
@@ -60,7 +61,9 @@ function AddMistakeContent() {
       const result = await response.json();
       console.log('[批量添加] 成功:', result);
       showToast(`成功添加 ${result.count} 条记录。`, 'success');
-      router.push('/');
+      setBatchText('');
+      setLastAddedCount(typeof result.count === 'number' ? result.count : null);
+      textareaRef.current?.focus();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '批量添加错误失败，请重试。';
       setError(errorMessage);
@@ -89,6 +92,11 @@ function AddMistakeContent() {
           {error && (
             <div className="mb-4 rounded-2xl border border-red-400 bg-red-100 px-4 py-3 text-red-700">
               {error}
+            </div>
+          )}
+          {lastAddedCount !== null && !error && (
+            <div className="mb-4 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              已保存 {lastAddedCount} 条内容，可以继续添加下一批。
             </div>
           )}
 
@@ -133,6 +141,7 @@ function AddMistakeContent() {
                 每行一条：{config.errorLabel} | {config.correctLabel} | Explanation（可选）
               </p>
               <textarea
+                ref={textareaRef}
                 value={batchText}
                 onChange={(e) => setBatchText(e.target.value)}
                 className="w-full rounded-2xl border border-slate-300 px-4 py-3 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -149,6 +158,11 @@ function AddMistakeContent() {
             >
               {loading ? '添加中...' : '保存内容'}
             </button>
+            <div className="text-center">
+              <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-700">
+                添加完成，返回首页
+              </Link>
+            </div>
           </form>
         </div>
       </div>
