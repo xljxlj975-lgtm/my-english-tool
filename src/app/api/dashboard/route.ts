@@ -72,7 +72,7 @@ export async function GET() {
       learnedResult,
       unlearnedResult,
       recentResult,
-      learnedReviewsResult
+      reviewedDatesResult
     ] = await Promise.all([
       // 今日复习队列（计数）
       supabase
@@ -114,8 +114,8 @@ export async function GET() {
         })()),
       supabase
         .from('mistakes')
-        .select('next_review_at')
-        .eq('status', 'learned'),
+        .select('last_reviewed_at')
+        .not('last_reviewed_at', 'is', null),
     ]);
 
     if (todayReviewResult.error) throw todayReviewResult.error;
@@ -125,7 +125,7 @@ export async function GET() {
     if (learnedResult.error) throw learnedResult.error;
     if (unlearnedResult.error) throw unlearnedResult.error;
     if (recentResult.error) throw recentResult.error;
-    if (learnedReviewsResult.error) throw learnedReviewsResult.error;
+    if (reviewedDatesResult.error) throw reviewedDatesResult.error;
 
     // v2.0: 过滤出真正需要复习的条目（未复习或需要重新复习）
     const filterNeedsReview = (items: Mistake[]) => {
@@ -157,9 +157,9 @@ export async function GET() {
 
     // Get streak (consecutive days with reviews completed)
     const reviewDateSet = new Set<string>();
-    (learnedReviewsResult.data || []).forEach(({ next_review_at }) => {
-      if (!next_review_at) return;
-      reviewDateSet.add(new Date(next_review_at).toISOString().split('T')[0]);
+    (reviewedDatesResult.data || []).forEach(({ last_reviewed_at }) => {
+      if (!last_reviewed_at) return;
+      reviewDateSet.add(new Date(last_reviewed_at).toISOString().split('T')[0]);
     });
 
     let streak = 0;
