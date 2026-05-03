@@ -22,7 +22,14 @@ interface Mistake {
   last_reviewed_at?: string | null;
   last_score?: number | null;
   previous_interval?: number | null;
+  reappear_count?: number;
 }
+
+interface ReviewResult {
+  reappearInSession?: boolean;
+}
+
+const REAPPEAR_OFFSETS = [10, 15];
 
 const scoreLabels: Record<number, string> = {
   0: '忘了',
@@ -116,6 +123,7 @@ export default function ReviewPage() {
 
     const currentMistake = mistakes[currentIndex];
     const contentType = currentMistake.content_type || 'mistake';
+    const isReappearance = (currentMistake.reappear_count ?? 0) > 0;
 
     try {
       const response = await fetch(`/api/mistakes/${currentMistake.id}`, {
@@ -125,6 +133,7 @@ export default function ReviewPage() {
         },
         body: JSON.stringify({
           score,           // v3.0: 4-level score
+          isReappearance,
           contentType
         }),
       });
@@ -133,11 +142,27 @@ export default function ReviewPage() {
         throw new Error('Failed to update mistake');
       }
 
-      // Note: 不再需要"stay on card for retry"逻辑
-      // 当日重现会通过reappear机制处理
+      const result = (await response.json()) as ReviewResult;
+
+      if (result.reappearInSession && !isReappearance) {
+        const reappearCards = [1, 2].map((count) => ({
+          ...currentMistake,
+          reappear_count: count,
+        }));
+
+        setMistakes((current) => {
+          const nextQueue = [...current];
+          const firstInsertAt = Math.min(currentIndex + REAPPEAR_OFFSETS[0], nextQueue.length);
+          nextQueue.splice(firstInsertAt, 0, reappearCards[0]);
+
+          const secondInsertAt = Math.min(currentIndex + REAPPEAR_OFFSETS[1], nextQueue.length);
+          nextQueue.splice(secondInsertAt, 0, reappearCards[1]);
+          return nextQueue;
+        });
+      }
 
       // Move to next card (or finish)
-      if (currentIndex < mistakes.length - 1) {
+      if (currentIndex < mistakes.length - 1 || (result.reappearInSession && !isReappearance)) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {

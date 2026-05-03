@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/database';
-import { formatDateForDb, calculateNextReviewDate } from '@/lib/spaced-repetition';
+import {
+  calculateNextReview,
+  formatDateForDb,
+  getFutureReviewLoad,
+  Score,
+} from '@/lib/spaced-repetition';
 
 // POST /api/mistakes/batch - Create multiple mistakes from batch input
 export async function POST(request: NextRequest) {
@@ -47,23 +52,43 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Batch API] Parsed', mistakes.length, 'mistakes');
-    const now = new Date();
-    // v2.0: 首次创建时lastReviewedAt为null
-    const { nextReviewAt } = calculateNextReviewDate(0, false, null, now);
-    const nextReviewAtFormatted = formatDateForDb(nextReviewAt);
+    const reviewLoadMap = await getFutureReviewLoad(supabase, 14);
 
-    const records = mistakes.map(mistake => ({
-      id: crypto.randomUUID(),
-      error_sentence: mistake.error_sentence,
-      correct_sentence: mistake.correct_sentence,
-      explanation: mistake.explanation || null,
-      content_type, // v2.0: 所有批量导入的条目使用相同的content_type
-      status: 'unlearned',
-      next_review_at: nextReviewAtFormatted,
-      review_stage: 0,
-      review_count: 0,
-      last_reviewed_at: null, // v2.0: 初始为null
-    }));
+    const records = mistakes.map(mistake => {
+      const id = crypto.randomUUID();
+      // New cards start at stage 0 with the first v3 interval.
+      const result = calculateNextReview({
+        currentStage: 0,
+        score: Score.Forgot,
+        lastReviewedAt: null,
+        nextReviewAt: null,
+        previousInterval: null,
+        consecutiveHardCount: 0,
+        cardId: id,
+        reviewLoadMap,
+      });
+
+      const nextReviewDateKey = formatDateForDb(result.nextReviewAt).split(' ')[0];
+      reviewLoadMap[nextReviewDateKey] = (reviewLoadMap[nextReviewDateKey] || 0) + 1;
+
+      return {
+        id,
+        error_sentence: mistake.error_sentence,
+        correct_sentence: mistake.correct_sentence,
+        explanation: mistake.explanation || null,
+        content_type, // v2.0: 所有批量导入的条目使用相同的content_type
+        status: 'unlearned',
+        next_review_at: formatDateForDb(result.nextReviewAt),
+        review_stage: result.newStage,
+        review_count: 0,
+        last_reviewed_at: null, // v2.0: 初始为null
+        last_score: null,
+        consecutive_hard_count: 0,
+        previous_interval: result.newPreviousInterval,
+        health_check_at: null,
+        reappear_count: 0,
+      };
+    });
 
     console.log('[Batch API] Inserting mistakes...');
 
