@@ -64,6 +64,15 @@ function formatReviewDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '暂无';
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateDay = new Date(date);
+  dateDay.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((today.getTime() - dateDay.getTime()) / 86400000);
+
+  if (diffDays === 0) return '今天';
+  if (diffDays > 0) return `逾期 ${diffDays} 天`;
+
   return new Intl.DateTimeFormat('zh-CN', {
     month: 'short',
     day: 'numeric',
